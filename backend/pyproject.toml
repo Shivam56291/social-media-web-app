@@ -1,0 +1,11 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Backend service for a social media platform built with Django and Django REST Framework, providing a structured foundation for developing and managing application data and APIs."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.0.4",
+    "django-cors-headers>=4.9.0",
+    "djangorestframework>=3.17.1",
+]
