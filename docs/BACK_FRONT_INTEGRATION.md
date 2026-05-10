@@ -16,22 +16,22 @@ uv add django-cors-headers --active
 
 ### 2. Update settings.py
 Add the following configurations:
-INSTALLED_APPS = [
-    ...,
-    "corsheaders",
+```python
+INSTALLED_APPS = [ ..., "corsheaders", ]
+
+MIDDLEWARE = [ 
+    "corsheaders.middleware.CorsMiddleware", # Must be at the top 
+    "django.middleware.common.CommonMiddleware", 
+    ..., 
 ]
 
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # Must be at the top
-    "django.middleware.common.CommonMiddleware",
-    ...,
+CORS_ALLOWED_ORIGINS = [ 
+    "http://localhost:5173", 
+    "[http://127.0.0.1:5173](http://127.0.0.1:5173)", 
 ]
+```
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "[http://127.0.0.1:5173](http://127.0.0.1:5173)",
-]
-
+---
 
 ## ⚛️ Frontend Configuration (React)
 
