@@ -23,7 +23,7 @@ Create a local .env file to handle backend API connections:
 cp .env.example .env
 ```
 
-###4. Run Development Server
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
