@@ -1,3 +1,5 @@
+// src/routes/AppRoutes.jsx
+
 import {
   Routes,
   Route,
@@ -8,9 +10,21 @@ import { useSelector } from "react-redux";
 
 import AuthPage from "../pages/AuthPage";
 
-import Dashboard from "../pages/Dashboard";
-
 import ProtectedRoute from "./ProtectedRoute";
+
+import DashboardLayout from "../layouts/DashboardLayout";
+
+import FeedPage from "../pages/Dashboard/FeedPage";
+
+import ProfilePage from "../pages/Dashboard/ProfilePage";
+
+import MessagesPage from "../pages/Dashboard/MessagesPage";
+
+import ExplorePage from "../pages/Dashboard/ExplorePage";
+
+import NotificationsPage from "../pages/Dashboard/NotificationsPage";
+
+import SavedPage from "../pages/Dashboard/SavedPage";
 
 export default function AppRoutes() {
   const { access } = useSelector(
@@ -19,12 +33,13 @@ export default function AppRoutes() {
 
   return (
     <Routes>
+      {/* AUTH PAGE */}
       <Route
         path="/"
         element={
           access ? (
             <Navigate
-              to="/dashboard"
+              to="/dashboard/feed"
               replace
             />
           ) : (
@@ -33,14 +48,62 @@ export default function AppRoutes() {
         }
       />
 
+      {/* DASHBOARD */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <DashboardLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        {/* DEFAULT PAGE */}
+        <Route
+          index
+          element={
+            <Navigate
+              to="feed"
+              replace
+            />
+          }
+        />
+
+        {/* FEED */}
+        <Route
+          path="feed"
+          element={<FeedPage />}
+        />
+
+        {/* PROFILE */}
+        <Route
+          path="profile"
+          element={<ProfilePage />}
+        />
+
+        {/* MESSAGES */}
+        <Route
+          path="messages"
+          element={<MessagesPage />}
+        />
+
+        {/* EXPLORE */}
+        <Route
+          path="explore"
+          element={<ExplorePage />}
+        />
+
+        {/* NOTIFICATIONS */}
+        <Route
+          path="notifications"
+          element={<NotificationsPage />}
+        />
+
+        {/* SAVED */}
+        <Route
+          path="saved"
+          element={<SavedPage />}
+        />
+      </Route>
     </Routes>
   );
 }
