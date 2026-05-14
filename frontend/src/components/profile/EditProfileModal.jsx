@@ -310,18 +310,7 @@ export default function EditProfileModal({
                       Edit Profile
                     </h2>
 
-                    <p
-                      className="
-                        mt-3
-                        text-sm leading-7
-                        text-slate-400
-                      "
-                    >
-                      Update your public
-                      profile information and
-                      personalize your
-                      ConnectSphere account.
-                    </p>
+
 
                   </div>
 
@@ -363,35 +352,6 @@ export default function EditProfileModal({
                       Settings
                     </button>
 
-                    {/* LOGOUT */}
-                    <button
-                      type="button"
-                      onClick={
-                        handleLogout
-                      }
-                      className="
-                        flex h-12 flex-1
-                        items-center
-                        justify-center
-                        gap-2
-                        rounded-2xl
-                        border border-red-500/20
-                        bg-red-500/10
-                        px-6
-                        text-sm font-medium
-                        text-red-300
-                        transition-all
-                        hover:bg-red-500/20
-                        sm:min-w-[140px]
-                      "
-                    >
-                      <SignOut
-                        size={18}
-                        weight="bold"
-                      />
-
-                      Logout
-                    </button>
 
                   </div>
                 </div>
