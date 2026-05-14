@@ -7,6 +7,8 @@ import {
   AnimatePresence,
 } from "framer-motion";
 
+import { showToast } from "../../utils/toast";
+
 import {
   X,
   SignOut,
@@ -134,9 +136,7 @@ export default function EditProfileModal({
 
         console.log(error);
 
-        setApiError(
-          "Failed to upload image"
-        );
+        showToast.error("Image upload failed. Try again ✨");
 
       } finally {
 
@@ -164,15 +164,15 @@ export default function EditProfileModal({
         updateUser(response)
       );
 
+      showToast.success("Profile updated successfully ✨");
+
       onClose();
 
     } catch (error) {
 
       console.log(error);
 
-      setApiError(
-        "Failed to update profile"
-      );
+      showToast.error("Profile update failed. Please try again ✨");
 
     } finally {
 

@@ -1,4 +1,4 @@
-import toast from "react-hot-toast";
+import { showToast } from "./toast";
 import { isProfileComplete } from "./userStatus";
 
 export const canAccessRoute = (user, targetRoute) => {
@@ -13,9 +13,7 @@ export const canAccessRoute = (user, targetRoute) => {
   ];
 
   if (!profileDone && protectedRoutes.includes(targetRoute)) {
-    toast("Please complete your profile first ✨", {
-      icon: "👤",
-    });
+    showToast.info("Complete your profile to unlock full experience ✨");
 
     return false;
   }

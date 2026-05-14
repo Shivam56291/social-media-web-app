@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
+import { showToast } from "../utils/toast";
 import { isProfileComplete } from "../utils/userStatus";
 
 export default function useOnboardingGuard() {
@@ -16,9 +16,7 @@ export default function useOnboardingGuard() {
     const alreadyShown = sessionStorage.getItem("onboarding_toast_shown");
 
     if (!alreadyShown) {
-      toast("Complete your profile to unlock full experience ✨", {
-        icon: "👤",
-      });
+      showToast.warning("Please complete your profile first ✨");
 
       sessionStorage.setItem("onboarding_toast_shown", "true");
     }
