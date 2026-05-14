@@ -192,7 +192,7 @@ export default function EditProfileModal({
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="
-            fixed inset-0 z-50
+            fixed inset-0 z-50 overflow-y-auto
             bg-black/70
             p-3 sm:p-5
             backdrop-blur-md
@@ -233,7 +233,7 @@ export default function EditProfileModal({
               className="
                 relative w-full
                 max-w-3xl
-                overflow-hidden
+                overflow-y-scroll
                 rounded-[32px]
                 border border-white/10
                 bg-[#0B1120]/95
