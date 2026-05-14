@@ -16,8 +16,15 @@ class User(AbstractUser):
         blank=True
     )
 
-    avatar_url = models.ImageField(
-        upload_to='avatars/',
+    is_private = models.BooleanField(
+        default=False
+    )
+
+    is_active = models.BooleanField(
+        default=True
+    )
+
+    avatar_url = models.URLField(
         blank=True,
         null=True
     )

@@ -1,37 +1,53 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
+
+from django.contrib.auth import (
+    get_user_model,
+    authenticate
+)
+
+from rest_framework_simplejwt.tokens import (
+    RefreshToken
+)
 
 User = get_user_model()
 
 
-class RegisterSerializer(serializers.ModelSerializer):
+# REGISTER
+class RegisterSerializer(
+    serializers.ModelSerializer
+):
 
     password = serializers.CharField(
         write_only=True
     )
 
     class Meta:
+
         model = User
+
         fields = [
-            'id',
-            'username',
-            'email',
-            'password',
+            "id",
+            "username",
+            "email",
+            "password",
         ]
 
     def create(self, validated_data):
 
         user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
         )
 
         return user
 
-class LoginSerializer(serializers.Serializer):
+
+# LOGIN
+class LoginSerializer(
+    serializers.Serializer
+):
 
     login = serializers.CharField()
 
@@ -41,45 +57,41 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, data):
 
-        login = data.get('login')
-
-        password = data.get('password')
+        login = data.get("login")
+        password = data.get("password")
 
         user = None
 
-        # Login using email
-        if '@' in login:
+        # LOGIN USING EMAIL
+        if "@" in login:
 
-            try:
-                user_obj = User.objects.get(
-                    email=login
-                )
+            user = authenticate(
+                email=login,
+                password=password
+            )
 
-                user = authenticate(
-                    username=user_obj.email,
-                    password=password
-                )
-
-            except User.DoesNotExist:
-                pass
-
-        # Login using username
+        # LOGIN USING USERNAME
         else:
 
             try:
+
                 user_obj = User.objects.get(
                     username=login
                 )
 
                 user = authenticate(
-                    username=user_obj.email,
+                    email=user_obj.email,
                     password=password
                 )
 
             except User.DoesNotExist:
-                pass
+
+                raise serializers.ValidationError(
+                    "Invalid credentials"
+                )
 
         if not user:
+
             raise serializers.ValidationError(
                 "Invalid credentials"
             )
@@ -87,9 +99,92 @@ class LoginSerializer(serializers.Serializer):
         refresh = RefreshToken.for_user(user)
 
         return {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
+            "access": str(
+                refresh.access_token
+            ),
+
+            "refresh": str(refresh),
         }
+
+
+# FULL USER
+class UserSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+
+        model = User
+
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "bio",
+            "avatar_url",
+            "created_at",
+        ]
+
+# UPDATE PROFILE
+class UpdateProfileSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+
+        model = User
+
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "bio",
+            "avatar_url",
+        ]
+
+    def validate_username(
+        self,
+        value
+    ):
+
+        user = self.instance
+
+        if (
+            User.objects.exclude(
+                id=user.id
+            ).filter(
+                username=value
+            ).exists()
+        ):
+
+            raise serializers.ValidationError(
+                "Username already taken"
+            )
+
+        return value
+
+class UpdateEmailSerializer(
+    serializers.Serializer
+):
+
+    email = serializers.EmailField()
+
+
+class ChangePasswordSerializer(
+    serializers.Serializer
+):
+
+    current_password = serializers.CharField()
+
+    new_password = serializers.CharField()
+
+    def validate_new_password(
+        self,
+        value,
+    ):
+
+        validate_password(value)
+
+        return value

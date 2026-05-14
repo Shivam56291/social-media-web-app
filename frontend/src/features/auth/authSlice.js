@@ -20,24 +20,21 @@ const authSlice = createSlice({
     },
 
     loginSuccess: (
-      state,
-      action
-    ) => {
-      state.loading = false;
+  state,
+  action
+) => {
 
-      state.access =
-        action.payload.access;
+  state.loading = false;
 
-      state.refresh =
-        action.payload.refresh;
+  state.access =
+    action.payload.access;
 
-      state.user = {
-        id: action.payload.id,
-        username:
-          action.payload.username,
-        email: action.payload.email,
-      };
-    },
+  state.refresh =
+    action.payload.refresh;
+
+  state.user =
+    action.payload.user;
+},
 
     logout: (state) => {
       state.access = null;
@@ -48,6 +45,23 @@ const authSlice = createSlice({
 
       authStorage.clear();
     },
+
+    updateUser: (state, action) => {
+      state.user = {
+        ...state.user,
+        ...action.payload,
+      };
+
+      const storage =
+        localStorage.getItem("access")
+          ? localStorage
+          : sessionStorage;
+
+      storage.setItem(
+        "user",
+        JSON.stringify(state.user)
+      );
+    },
   },
 });
 
@@ -55,6 +69,7 @@ export const {
   loginStart,
   loginSuccess,
   logout,
+  updateUser,
 } = authSlice.actions;
 
 export default authSlice.reducer;

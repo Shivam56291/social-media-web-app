@@ -1,188 +1,293 @@
 // src/pages/Dashboard/ProfilePage.jsx
 
+import { useState } from "react";
+
+import { useSelector } from "react-redux";
+
 import {
   PencilSimple,
   GridFour,
   BookmarkSimple,
   Heart,
+  CalendarBlank,
+  Link,
 } from "@phosphor-icons/react";
 
-import { useSelector } from "react-redux";
+import EditProfileModal from "../../components/profile/EditProfileModal";
 
 const POSTS = [1, 2, 3, 4, 5, 6];
 
 export default function ProfilePage() {
+  const [editOpen, setEditOpen] =
+    useState(false);
+
   const { user } = useSelector(
     (state) => state.auth
   );
 
+  /* FULL NAME */
+  const fullName = [
+    user?.first_name,
+    user?.last_name,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  /* JOIN DATE */
+  const joinedDate = user?.created_at
+    ? new Date(
+        user.created_at
+      ).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "May 2026";
+
   return (
     <div className="pb-16">
-      {/* HEADER */}
+      {/* PROFILE HEADER */}
       <div
         className="
-          mb-12 rounded-[36px]
+          relative overflow-hidden
+          rounded-[38px]
           border border-white/10
           bg-white/[0.03]
-          p-8
-          backdrop-blur-md
+          p-6 backdrop-blur-md
+          lg:p-8
         "
       >
+        {/* BG GRADIENT */}
         <div
           className="
-            flex flex-col gap-10
-            lg:flex-row
-            lg:items-center
+            absolute inset-x-0 top-0
+            h-52
+            bg-gradient-to-r
+            from-indigo-500/10
+            via-cyan-500/5
+            to-pink-500/10
+            blur-3xl
           "
-        >
-          {/* PROFILE IMAGE */}
-          <div className="flex justify-center">
+        />
+
+        <div className="relative z-10">
+          <div
+            className="
+              flex flex-col gap-10
+              lg:flex-row
+              lg:items-start
+            "
+          >
+            {/* AVATAR */}
             <div
               className="
-                relative flex
-                h-40 w-40
-                items-center justify-center
-                overflow-hidden
-                rounded-full
-                bg-gradient-to-br
-                from-indigo-500
-                via-cyan-500
-                to-pink-500
-                p-[4px]
-                shadow-2xl
-                shadow-cyan-500/10
+                flex justify-center
+                lg:justify-start
               "
             >
               <div
                 className="
-                  flex h-full w-full
-                  items-center justify-center
+                  relative flex
+                  h-40 w-40
+                  items-center
+                  justify-center
                   overflow-hidden
                   rounded-full
-                  bg-[#070B14]
+                  bg-gradient-to-br
+                  from-indigo-500
+                  via-cyan-500
+                  to-pink-500
+                  p-[4px]
+                  shadow-2xl
+                  shadow-cyan-500/10
                 "
               >
-                {user?.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
-                    alt={user.username}
+                <div
+                  className="
+                    flex h-full w-full
+                    items-center
+                    justify-center
+                    overflow-hidden
+                    rounded-full
+                    bg-[#070B14]
+                  "
+                >
+                  {user?.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.username}
+                      className="
+                        h-full w-full
+                        object-cover
+                      "
+                    />
+                  ) : (
+                    <span
+                      className="
+                        text-6xl
+                        font-black
+                        text-white
+                      "
+                    >
+                      {user?.username
+                        ?.charAt(0)
+                        ?.toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDE */}
+            <div className="flex-1">
+              {/* TOP SECTION */}
+              <div
+                className="
+                  flex flex-col gap-6
+                  lg:flex-row
+                  lg:items-start
+                  lg:justify-between
+                "
+              >
+                {/* USER INFO */}
+                <div>
+                  {/* FULL NAME */}
+                  <h1
                     className="
-                      h-full w-full
-                      object-cover
-                    "
-                  />
-                ) : (
-                  <span
-                    className="
-                      text-6xl font-black
+                      text-4xl
+                      font-black
+                      tracking-tight
+                      text-white
                     "
                   >
-                    {user?.username
-                      ?.charAt(0)
-                      ?.toUpperCase()}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+                    {fullName ||
+                      user?.username}
+                  </h1>
 
-          {/* PROFILE INFO */}
-          <div className="flex-1">
-            {/* TOP */}
-            <div
-              className="
-                mb-8 flex
-                items-start
-                justify-between
-                gap-5
-              "
-            >
-              <div>
-                <h1
+                  {/* USERNAME */}
+                  <p
+                    className="
+                      mt-2 text-lg
+                      text-slate-400
+                    "
+                  >
+                    @{user?.username}
+                  </p>
+
+                  {/* EMAIL */}
+                  <p
+                    className="
+                      mt-3 text-sm
+                      text-cyan-400
+                    "
+                  >
+                    {user?.email}
+                  </p>
+
+                  {/* META */}
+                  <div
+                    className="
+                      mt-5 flex
+                      flex-wrap gap-5
+                      text-sm
+                      text-slate-400
+                    "
+                  >
+                    <div
+                      className="
+                        flex items-center
+                        gap-2
+                      "
+                    >
+                      <CalendarBlank
+                        size={18}
+                        weight="duotone"
+                      />
+
+                      Joined {joinedDate}
+                    </div>
+
+                    <div
+                      className="
+                        flex items-center
+                        gap-2
+                      "
+                    >
+                      <Link
+                        size={18}
+                        weight="duotone"
+                      />
+
+                      connectsphere.dev
+                    </div>
+                  </div>
+                </div>
+
+                {/* EDIT BUTTON */}
+                <button
+                  onClick={() =>
+                    setEditOpen(true)
+                  }
                   className="
-                    text-4xl font-black
-                    tracking-tight
+                    flex items-center
+                    justify-center
+                    gap-2 rounded-2xl
+                    border border-white/10
+                    bg-white/[0.05]
+                    px-6 py-3
+                    text-sm font-medium
+                    text-white
+                    transition-all
+                    hover:border-white/20
+                    hover:bg-white/[0.08]
+                    whitespace-nowrap
                   "
                 >
-                  {user?.username}
-                </h1>
+                  <PencilSimple
+                    size={18}
+                    weight="bold"
+                  />
 
+                  Edit Profile
+                </button>
+              </div>
+
+              {/* STATS */}
+              <div
+                className="
+                  mt-10 flex
+                  flex-wrap gap-10
+                "
+              >
+                <StatItem
+                  value="248"
+                  label="Posts"
+                />
+
+                <StatItem
+                  value="24.8k"
+                  label="Followers"
+                />
+
+                <StatItem
+                  value="1,248"
+                  label="Following"
+                />
+              </div>
+
+              {/* BIO */}
+              <div className="mt-10 max-w-3xl">
                 <p
                   className="
-                    mt-2 text-lg
-                    text-slate-400
+                    text-[15px]
+                    leading-8
+                    text-slate-300
+                    lg:text-base
                   "
                 >
-                  @{user?.username}
+                  {user?.bio ||
+                    "Building modern web experiences with React, Django, scalable backend systems and beautifully crafted user interfaces ✨"}
                 </p>
               </div>
-
-              <button
-                className="
-                  flex items-center
-                  gap-2 rounded-2xl
-                  border border-white/10
-                  bg-white/[0.05]
-                  px-5 py-3
-                  text-sm font-medium
-                  transition-all
-                  hover:bg-white/[0.08]
-                  whitespace-nowrap
-                "
-              >
-                <PencilSimple size={18} />
-
-                Edit Profile
-              </button>
-            </div>
-
-            {/* STATS */}
-            <div
-              className="
-                mb-8 flex
-                flex-wrap gap-8
-              "
-            >
-              <StatItem
-                value="248"
-                label="Posts"
-              />
-
-              <StatItem
-                value="24.8k"
-                label="Followers"
-              />
-
-              <StatItem
-                value="1,248"
-                label="Following"
-              />
-            </div>
-
-            {/* BIO */}
-            <div className="max-w-2xl">
-              <h3 className="font-bold">
-                {user?.username}
-              </h3>
-
-              <p
-                className="
-                  mt-3 leading-8
-                  text-slate-300
-                "
-              >
-                {user?.bio ||
-                  "Building modern web experiences with React, Django, TailwindCSS and scalable backend systems ✨"}
-              </p>
-
-              <p
-                className="
-                  mt-4 text-sm
-                  text-cyan-400
-                "
-              >
-                {user?.email}
-              </p>
             </div>
           </div>
         </div>
@@ -191,7 +296,8 @@ export default function ProfilePage() {
       {/* HIGHLIGHTS */}
       <div
         className="
-          mb-10 flex gap-6
+          mt-10 mb-12
+          flex gap-6
           overflow-x-auto
           pb-2
         "
@@ -205,15 +311,22 @@ export default function ProfilePage() {
         ].map((item) => (
           <div
             key={item}
-            className="flex flex-col items-center"
+            className="
+              flex flex-col
+              items-center
+            "
           >
             <div
               className="
                 flex h-24 w-24
-                items-center justify-center
+                items-center
+                justify-center
                 rounded-full
                 border border-white/10
                 bg-white/[0.04]
+                transition-all
+                hover:border-white/20
+                hover:bg-white/[0.06]
               "
             >
               <div
@@ -243,26 +356,39 @@ export default function ProfilePage() {
       <div
         className="
           mb-8 flex
-          items-center gap-6
+          items-center gap-4
           border-t border-white/10
           pt-6
         "
       >
         <TabButton
-          icon={<GridFour size={18} />}
+          icon={
+            <GridFour
+              size={18}
+              weight="fill"
+            />
+          }
           text="Posts"
           active
         />
 
         <TabButton
           icon={
-            <BookmarkSimple size={18} />
+            <BookmarkSimple
+              size={18}
+              weight="duotone"
+            />
           }
           text="Saved"
         />
 
         <TabButton
-          icon={<Heart size={18} />}
+          icon={
+            <Heart
+              size={18}
+              weight="duotone"
+            />
+          }
           text="Liked"
         />
       </div>
@@ -288,7 +414,7 @@ export default function ProfilePage() {
               from-indigo-500/20
               via-cyan-500/10
               to-pink-500/10
-              transition-all
+              transition-all duration-300
               hover:-translate-y-1
               hover:border-white/20
             "
@@ -307,7 +433,12 @@ export default function ProfilePage() {
                 group-hover:opacity-100
               "
             >
-              <div className="flex items-center gap-2">
+              <div
+                className="
+                  flex items-center
+                  gap-2
+                "
+              >
                 <Heart
                   size={22}
                   weight="fill"
@@ -318,7 +449,12 @@ export default function ProfilePage() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div
+                className="
+                  flex items-center
+                  gap-2
+                "
+              >
                 <BookmarkSimple
                   size={22}
                   weight="fill"
@@ -332,6 +468,15 @@ export default function ProfilePage() {
           </div>
         ))}
       </div>
+
+      {/* MODAL */}
+      <EditProfileModal
+        open={editOpen}
+        onClose={() =>
+          setEditOpen(false)
+        }
+        user={user}
+      />
     </div>
   );
 }
@@ -345,13 +490,20 @@ function StatItem({
     <div>
       <h3
         className="
-          text-2xl font-black
+          text-2xl
+          font-black
+          text-white
         "
       >
         {value}
       </h3>
 
-      <p className="mt-1 text-slate-400">
+      <p
+        className="
+          mt-1 text-sm
+          text-slate-400
+        "
+      >
         {label}
       </p>
     </div>

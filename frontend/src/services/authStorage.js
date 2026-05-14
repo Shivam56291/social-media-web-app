@@ -1,5 +1,6 @@
 export const authStorage = {
   setAuth(data, remember = true) {
+
     const storage = remember
       ? localStorage
       : sessionStorage;
@@ -14,13 +15,12 @@ export const authStorage = {
       data.refresh
     );
 
+    // STORE USER SAFELY
     storage.setItem(
       "user",
-      JSON.stringify({
-        id: data.id,
-        username: data.username,
-        email: data.email,
-      })
+      JSON.stringify(
+        data.user || null
+      )
     );
   },
 
@@ -39,20 +39,35 @@ export const authStorage = {
   },
 
   getUser() {
+
+  try {
+
     const user =
       localStorage.getItem("user") ||
       sessionStorage.getItem("user");
 
-    return user ? JSON.parse(user) : null;
-  },
+    if (!user || user === "undefined") {
+      return null;
+    }
+
+    return JSON.parse(user);
+
+  } catch (error) {
+
+    return null;
+  }
+},
 
   clear() {
+
     [
       "access",
       "refresh",
       "user",
     ].forEach((key) => {
+
       localStorage.removeItem(key);
+
       sessionStorage.removeItem(key);
     });
   },

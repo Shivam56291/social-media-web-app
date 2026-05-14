@@ -7,10 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
 import {
-  Mail,
+  EnvelopeSimple,
   Lock,
   Globe,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 
 import Input from "../common/Input";
 import Button from "../common/Button";
@@ -58,58 +58,103 @@ export default function LoginForm({
 
       setApiError("");
 
-      const response =
+      // LOGIN
+      const loginResponse =
         await authService.login({
           login: data.login,
           password: data.password,
         });
 
+      // STORE TOKENS FIRST
       authStorage.setAuth(
-        response,
+        {
+          access: loginResponse.access,
+          refresh: loginResponse.refresh,
+          user: null,
+        },
         rememberMe
       );
 
-      dispatch(loginSuccess(response));
+      // FETCH FULL USER
+      const user =
+        await authService.getCurrentUser();
+
+      // STORE AGAIN WITH USER
+      authStorage.setAuth(
+        {
+          access: loginResponse.access,
+          refresh: loginResponse.refresh,
+          user,
+        },
+        rememberMe
+      );
+
+      // REDUX
+      dispatch(
+        loginSuccess({
+          access: loginResponse.access,
+          refresh: loginResponse.refresh,
+          user,
+        })
+      );
 
       navigate("/dashboard");
+
     } catch (error) {
-      console.log(
-        error?.response?.data
-      );
+
+      console.log(error);
 
       setApiError(
         error?.response?.data?.detail ||
-          error?.response?.data
-            ?.error ||
-          "Invalid username or password"
+        error?.response?.data?.non_field_errors?.[0] ||
+        "Invalid username or password"
       );
+
     } finally {
+
       setLoading(false);
     }
   };
 
   return (
     <div>
+      {/* HEADER */}
       <div className="mb-8">
-        <h2 className="text-3xl font-black tracking-tight text-white">
+        <h2
+          className="
+            text-3xl font-black
+            tracking-tight text-white
+          "
+        >
           Welcome back
         </h2>
 
-        <p className="mt-2 text-slate-400">
+        <p
+          className="
+            mt-2 text-slate-400
+          "
+        >
           Sign in to continue to
           ConnectSphere.
         </p>
       </div>
 
+      {/* FORM */}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-5"
       >
+        {/* LOGIN */}
         <Input
           label="Username or Email"
           type="text"
           placeholder="Enter username or email"
-          icon={<Mail size={18} />}
+          icon={
+            <EnvelopeSimple
+              size={18}
+              weight="duotone"
+            />
+          }
           error={errors.login?.message}
           {...register("login", {
             required:
@@ -117,12 +162,20 @@ export default function LoginForm({
           })}
         />
 
+        {/* PASSWORD */}
         <Input
           label="Password"
           type="password"
           placeholder="Enter your password"
-          icon={<Lock size={18} />}
-          error={errors.password?.message}
+          icon={
+            <Lock
+              size={18}
+              weight="duotone"
+            />
+          }
+          error={
+            errors.password?.message
+          }
           {...register("password", {
             required:
               "Password is required",
@@ -135,8 +188,20 @@ export default function LoginForm({
           })}
         />
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-3 text-sm text-slate-400">
+        {/* REMEMBER */}
+        <div
+          className="
+            flex items-center
+            justify-between
+          "
+        >
+          <label
+            className="
+              flex items-center
+              gap-3 text-sm
+              text-slate-400
+            "
+          >
             <input
               type="checkbox"
               checked={rememberMe}
@@ -160,13 +225,15 @@ export default function LoginForm({
             type="button"
             className="
               text-sm text-indigo-400
-              transition hover:text-indigo-300
+              transition
+              hover:text-indigo-300
             "
           >
             Forgot Password?
           </button>
         </div>
 
+        {/* ERROR */}
         {apiError && (
           <div
             className="
@@ -181,6 +248,7 @@ export default function LoginForm({
           </div>
         )}
 
+        {/* SUBMIT */}
         <Button
           type="submit"
           loading={loading}
@@ -189,12 +257,28 @@ export default function LoginForm({
           Sign In
         </Button>
 
+        {/* DIVIDER */}
         <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10"></div>
+          <div
+            className="
+              absolute inset-0
+              flex items-center
+            "
+          >
+            <div
+              className="
+                w-full border-t
+                border-white/10
+              "
+            />
           </div>
 
-          <div className="relative flex justify-center">
+          <div
+            className="
+              relative flex
+              justify-center
+            "
+          >
             <span
               className="
                 bg-[#0B1120]
@@ -207,10 +291,12 @@ export default function LoginForm({
           </div>
         </div>
 
+        {/* GOOGLE */}
         <button
           type="button"
           className="
-            flex w-full items-center
+            flex w-full
+            items-center
             justify-center gap-3
             rounded-2xl
             border border-white/10
@@ -222,7 +308,10 @@ export default function LoginForm({
             hover:bg-white/[0.06]
           "
         >
-          <Globe size={18} />
+          <Globe
+            size={18}
+            weight="duotone"
+          />
 
           Continue with Google
         </button>
