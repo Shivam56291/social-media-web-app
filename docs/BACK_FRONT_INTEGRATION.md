@@ -35,15 +35,21 @@ CORS_ALLOWED_ORIGINS = [
 
 ## ⚛️ Frontend Configuration (React)
 
+### 1. Install Necessary Dependencies
+Inside the frontend/ directory, run:
+```bash
+npm install react-router-dom react-redux @reduxjs/toolkit
+```
+
 We use Axios to handle API requests efficiently.
 
-### 1. Install Axios
+### 2. Install Axios
 Inside the frontend/ directory:
 ```bash
 npm install axios
 ```
 
-### 2. Testing the Connection
+### 3. Testing the Connection
 To verify the link, ensure the backend is running on port 8000 and the frontend is on 5173. Use the following pattern in your React components:
 
 ```javascript
