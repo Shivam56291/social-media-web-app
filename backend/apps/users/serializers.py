@@ -114,7 +114,8 @@ class LoginSerializer(
 class UserSerializer(
     serializers.ModelSerializer
 ):
-
+    follower_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
     class Meta:
 
         model = User
@@ -125,10 +126,17 @@ class UserSerializer(
             "email",
             "first_name",
             "last_name",
+            "follower_count",
+            "following_count",
             "bio",
             "avatar_url",
             "created_at",
         ]
+    def get_follower_count(self,obj):
+        return obj.followers.count()
+    def get_following_count(self,obj):
+        return obj.following.count()
+
 
 # UPDATE PROFILE
 class UpdateProfileSerializer(

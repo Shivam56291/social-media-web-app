@@ -5,6 +5,8 @@ from apps.users.views import (
     UpdatePrivacyView,
     DeactivateAccountView,
     LogoutAllDevicesView,
+    AllUsersView,
+    UserProfileView,
 )
 from django.urls import path
 
@@ -58,5 +60,14 @@ urlpatterns = [
     path(
         "logout-all/",
         LogoutAllDevicesView.as_view(),
+    ),
+        path(
+        "all-users/",
+        AllUsersView.as_view()
+    ),
+
+    path(
+        "get-user/<int:id>/",
+        UserProfileView.as_view()
     ),
 ]

@@ -248,3 +248,35 @@ class LogoutAllDevicesView(
                 },
                 status=400
             )
+        
+#To get the list of all users
+# ALL USERS
+class AllUsersView(
+    generics.ListAPIView
+):
+
+    serializer_class = UserSerializer
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    queryset = User.objects.all().order_by(
+        "-created_at"
+    )
+
+# To get a user profile by its id
+
+class UserProfileView(
+    generics.RetrieveAPIView
+):
+
+    serializer_class = UserSerializer
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    queryset = User.objects.all()
+
+    lookup_field = "id"            

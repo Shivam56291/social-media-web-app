@@ -3,17 +3,20 @@ from django.db import models
 
 
 class User(AbstractUser):
+
     username = models.CharField(
         max_length=150,
-        unique=True
+        unique=True,
     )
 
     email = models.EmailField(
-        unique=True
+        unique=True,
+        max_length=500
     )
 
     bio = models.TextField(
-        blank=True
+        blank=True,
+        max_length=1000
     )
 
     is_private = models.BooleanField(
@@ -32,6 +35,7 @@ class User(AbstractUser):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+    followers = models.ManyToManyField('self',symmetrical=False,related_name='following',blank=True)
 
     USERNAME_FIELD = 'email'
 
