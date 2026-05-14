@@ -164,6 +164,7 @@ export default function LoginForm({
 
         {/* PASSWORD */}
         <Input
+          className="hide-password-toggle"
           label="Password"
           type="password"
           placeholder="Enter your password"

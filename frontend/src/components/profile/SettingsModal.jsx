@@ -357,15 +357,16 @@ export default function SettingsModal({
               className="
                 relative
                 w-full
-                max-w-6xl
+                max-w-4xl
                 overflow-hidden
-                rounded-[36px]
+                rounded-[32px]
                 border border-white/10
                 bg-[#0B1120]/95
                 shadow-[0_0_80px_rgba(99,102,241,0.12)]
                 backdrop-blur-3xl
               "
             >
+
               {/* TOP GLOW */}
               <div
                 className="
@@ -413,10 +414,11 @@ export default function SettingsModal({
                 className="
                   relative z-10
                   grid gap-6
-                  lg:grid-cols-[280px_1fr]
+                  lg:grid-cols-[240px_1fr]
                   p-5 sm:p-7
                 "
               >
+
                 {/* SIDEBAR */}
                 <div
                   className="
@@ -616,7 +618,7 @@ export default function SettingsModal({
                     rounded-[30px]
                     border border-white/10
                     bg-white/[0.03]
-                    p-5 sm:p-7
+                    p-5 sm:p-6
                   "
                 >
                   <AnimatePresence
@@ -779,7 +781,7 @@ export default function SettingsModal({
                                   weight="duotone"
                                 />
                               }
-                              className="pr-14"
+                              className="pr-14  hide-password-toggle"
                               error={
                                 errors
                                   .current_password
@@ -805,7 +807,7 @@ export default function SettingsModal({
                                   weight="duotone"
                                 />
                               }
-                              className="pr-14"
+                              className="pr-14  hide-password-toggle"
                               error={
                                 errors
                                   .new_password

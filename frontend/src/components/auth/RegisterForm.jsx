@@ -136,6 +136,7 @@ export default function RegisterForm({
         />
 
         <Input
+          className="hide-password-toggle"
           label="Password"
           type="password"
           placeholder="Create password"
@@ -153,6 +154,7 @@ export default function RegisterForm({
         />
 
         <Input
+          className="hide-password-toggle"
           label="Confirm Password"
           type="password"
           placeholder="Confirm password"

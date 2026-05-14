@@ -23,3 +23,16 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+
+/* REMOVE DEFAULT BROWSER PASSWORD EYE */
+
+.hide-password-toggle::-ms-reveal,
+.hide-password-toggle::-ms-clear {
+  display: none;
+}
+
+.hide-password-toggle::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+}

@@ -7,6 +7,7 @@ from apps.users.serializers import UpdateProfileSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import update_last_login
 
 from .serializers import (
     RegisterSerializer,
@@ -38,6 +39,13 @@ class LoginView(generics.GenericAPIView):
 
         serializer.is_valid(
             raise_exception=True
+        )
+
+        user = serializer.user
+
+        update_last_login(
+            None,
+            user
         )
 
         return Response(
