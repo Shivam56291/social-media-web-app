@@ -4,6 +4,11 @@ This document provides a comprehensive overview of the active API endpoints avai
 
 ---
 
+> [!NOTE]
+> All endpoints below (except where noted) require a valid JWT `Bearer <token>` in the `Authorization` header.
+
+---
+
 ## 🔐 User & Authentication
 **Base URL:** `/api/users/`[cite: 1]
 
@@ -45,3 +50,23 @@ These endpoints are handled directly in the root `urlpatterns`[cite: 1].
 | :--- | :--- | :--- |
 | `/` | **GET** | Main application landing page[cite: 1]. |
 | `admin/` | **N/A** | Django Administration interface[cite: 1]. |
+
+## 📝 Posts & Engagement
+**Base URL:** `/api/posts/`
+
+### 🗂️ Core Post Actions
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `create/` | **POST** | Create a new post. Accepts a `content` string and an `image_urls` array of strings. |
+| `feed/` | **GET** | Fetch a global timeline of all recent posts, including dynamic counts for likes and comments. |
+| `user/<int:user_id>/` | **GET** | Retrieve all posts authored by a specific user profile ID. |
+| `<int:id>/` | **GET** | Retrieve comprehensive data for a single post by its ID. |
+| `<int:id>/` | **PUT/PATCH** | Update the content or media of an existing post (Author only). |
+| `<int:id>/` | **DELETE** | Permanently delete a post from the platform (Author only). |
+
+### 💬 Interactions & Socials
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `<int:id>/like/` | **POST** | Dynamic toggle view. Hits once to add a like; hits again to unlike. Returns updated count and current status. |
+| `<int:post_id>/comments/` | **GET** | Fetch all comments associated with a specific post, ordered chronologically. |
+| `<int:post_id>/comments/` | **POST** | Publish a text comment on a specific post. |
