@@ -1,36 +1,26 @@
 import { useEffect, useState } from "react";
 
-import {
-  Heart,
-  DotsThree,
-  ChatCircleDots,
-  TrendUp,
-  MagnifyingGlass,
-  Plus,
-  Fire,
-  UsersThree,
-} from "@phosphor-icons/react";
-
 import { Tooltip } from "react-tooltip";
-import "react-tooltip/dist/react-tooltip.css";
 
 import { useSelector } from "react-redux";
 
-const STORIES = [
-  "Alex",
-  "Sophia",
-  "James",
-  "Emma",
-  "Lucas",
-  "Olivia",
-];
+import FeedTopbar from "../../components/feed/FeedTopbar";
+import StoriesBar from "../../components/feed/StoriesBar";
+import PostCard from "../../components/feed/PostCard";
+import PostSkeleton from "../../components/feed/PostSkeleton";
+import RightSidebar from "../../components/feed/RightSidebar";
 
-const POSTS = [1, 2, 3];
+import CreatePostModal from "../../components/post/CreatePostModal";
+
+import { POSTS } from "../../constants/feedData";
 
 export default function FeedPage() {
   const { user } = useSelector(
     (state) => state.auth
   );
+
+  const [openModal, setOpenModal] =
+    useState(false);
 
   const [loading, setLoading] =
     useState(true);
@@ -46,108 +36,14 @@ export default function FeedPage() {
   return (
     <>
       {/* TOPBAR */}
-      <div
-        className="
-          mb-8 flex
-          items-center
-          justify-between gap-4
-        "
-      >
-        <div
-          className="
-            flex flex-1
-            items-center gap-3
-            rounded-2xl
-            border border-white/10
-            bg-white/[0.04]
-            px-5 py-3
-            max-w-xl
-          "
-        >
-          <MagnifyingGlass
-            size={20}
-            className="text-slate-500"
-          />
-
-          <input
-            type="text"
-            placeholder="Search people, posts, communities..."
-            className="
-              w-full bg-transparent
-              text-sm outline-none
-              placeholder:text-slate-500
-            "
-          />
-        </div>
-
-        {/* CREATE BUTTON */}
-        <button
-          data-tooltip-id="global-tooltip"
-          data-tooltip-content="Create Post"
-          className="
-            flex h-12 w-12
-            items-center justify-center
-            rounded-2xl
-            bg-gradient-to-r
-            from-indigo-500
-            to-cyan-500
-            shadow-lg
-            shadow-indigo-500/20
-          "
-        >
-          <Plus size={22} />
-        </button>
-      </div>
+      <FeedTopbar
+        onOpenModal={() =>
+          setOpenModal(true)
+        }
+      />
 
       {/* STORIES */}
-      <section className="mb-8">
-        <div
-          className="
-            flex gap-5
-            overflow-x-auto
-            pb-2
-            scrollbar-hide
-          "
-        >
-          {STORIES.map((story) => (
-            <div
-              key={story}
-              data-tooltip-id="global-tooltip"
-              data-tooltip-content={`${story}'s Story`}
-              className="flex flex-col items-center"
-            >
-              <div
-                className="
-                  flex h-20 w-20
-                  items-center justify-center
-                  rounded-[28px]
-                  bg-gradient-to-br
-                  from-indigo-500
-                  to-cyan-500
-                  p-[2px]
-                  cursor-pointer
-                "
-              >
-                <div
-                  className="
-                    flex h-full w-full
-                    items-center justify-center
-                    rounded-[26px]
-                    bg-[#070B14]
-                    text-lg font-bold
-                  "
-                >
-                  {story.charAt(0)}
-                </div>
-              </div>
-
-              <p className="mt-2 text-sm text-slate-300">
-                {story}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <StoriesBar />
 
       {/* FEED */}
       <div
@@ -172,83 +68,18 @@ export default function FeedPage() {
               ))}
         </div>
 
-        {/* RIGHT PANEL */}
-        <aside className="hidden xl:block">
-          <div
-            className="
-              sticky top-6
-              space-y-6
-            "
-          >
-            {/* TRENDING */}
-            <div
-              className="
-                rounded-3xl
-                border border-white/10
-                bg-white/[0.04]
-                p-6
-              "
-            >
-              <div className="mb-5 flex items-center gap-3">
-                <Fire
-                  size={22}
-                  className="text-orange-400"
-                />
-
-                <h3 className="text-lg font-bold">
-                  Trending
-                </h3>
-              </div>
-
-              <div className="space-y-5">
-                <TrendingItem
-                  tag="design"
-                  posts="12.4k posts"
-                />
-
-                <TrendingItem
-                  tag="reactjs"
-                  posts="8.2k posts"
-                />
-
-                <TrendingItem
-                  tag="startup"
-                  posts="5.7k posts"
-                />
-              </div>
-            </div>
-
-            {/* COMMUNITIES */}
-            <div
-              className="
-                rounded-3xl
-                border border-white/10
-                bg-white/[0.04]
-                p-6
-              "
-            >
-              <div className="mb-5 flex items-center gap-3">
-                <UsersThree
-                  size={22}
-                  className="text-cyan-400"
-                />
-
-                <h3 className="text-lg font-bold">
-                  Communities
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                <CommunityItem name="UI/UX Designers" />
-
-                <CommunityItem name="React Developers" />
-
-                <CommunityItem name="Startup Founders" />
-              </div>
-            </div>
-          </div>
-        </aside>
+        {/* SIDEBAR */}
+        <RightSidebar />
       </div>
+
+      {/* CREATE POST MODAL */}
+      <CreatePostModal
+        open={openModal}
+        onClose={() =>
+          setOpenModal(false)
+        }
+        user={user}
+      />
 
       {/* GLOBAL TOOLTIP */}
       <Tooltip
@@ -263,261 +94,9 @@ export default function FeedPage() {
           !text-sm
           !shadow-xl
           !z-50
+          !backdrop-blur-xl
         "
       />
     </>
-  );
-}
-
-/* POST CARD */
-function PostCard({ user }) {
-  return (
-    <div
-      className="
-        overflow-hidden
-        rounded-3xl
-        border border-white/10
-        bg-white/[0.04]
-      "
-    >
-      {/* HEADER */}
-      <div className="flex items-center justify-between p-5">
-        <div className="flex items-center gap-4">
-          <div
-            data-tooltip-id="global-tooltip"
-            data-tooltip-content={user?.username}
-            className="
-              flex h-14 w-14
-              items-center justify-center
-              rounded-2xl
-              bg-gradient-to-br
-              from-indigo-500
-              to-cyan-500
-              font-bold
-              cursor-pointer
-            "
-          >
-            {user?.username
-              ?.charAt(0)
-              ?.toUpperCase()}
-          </div>
-
-          <div>
-            <h3 className="font-semibold">
-              {user?.username}
-            </h3>
-
-            <p className="text-sm text-slate-400">
-              2 hours ago
-            </p>
-          </div>
-        </div>
-
-        {/* MORE BUTTON */}
-        <button
-          data-tooltip-id="global-tooltip"
-          data-tooltip-content="More Options"
-        >
-          <DotsThree
-            size={24}
-            className="text-slate-400"
-          />
-        </button>
-      </div>
-
-      {/* IMAGE */}
-      <div
-        data-tooltip-id="global-tooltip"
-        data-tooltip-content="View Post"
-        className="
-          h-[320px]
-          cursor-pointer
-          bg-gradient-to-br
-          from-indigo-500/30
-          via-cyan-500/20
-          to-pink-500/20
-        "
-      />
-
-      {/* CONTENT */}
-      <div className="p-5">
-        <div className="mb-4 flex items-center gap-5">
-          {/* LIKE */}
-          <button
-            data-tooltip-id="global-tooltip"
-            data-tooltip-content="Like"
-          >
-            <Heart
-              size={24}
-              className="text-pink-400"
-              weight="fill"
-            />
-          </button>
-
-          {/* COMMENT */}
-          <button
-            data-tooltip-id="global-tooltip"
-            data-tooltip-content="Comments"
-          >
-            <ChatCircleDots
-              size={24}
-              className="text-slate-300"
-            />
-          </button>
-
-          {/* SHARE */}
-          <button
-            data-tooltip-id="global-tooltip"
-            data-tooltip-content="Share Post"
-          >
-            <TrendUp
-              size={24}
-              className="text-slate-300"
-            />
-          </button>
-        </div>
-
-        <p className="leading-7 text-slate-300">
-          Building a premium social media
-          platform UI with React, Django,
-          TailwindCSS, and modern motion
-          animations ✨
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/* SKELETON */
-function PostSkeleton() {
-  return (
-    <div
-      className="
-        animate-pulse
-        overflow-hidden
-        rounded-3xl
-        border border-white/10
-        bg-white/[0.04]
-      "
-    >
-      <div className="flex items-center gap-4 p-5">
-        <div
-          className="
-            h-14 w-14 rounded-2xl
-            bg-white/10
-          "
-        />
-
-        <div className="flex-1 space-y-2">
-          <div
-            className="
-              h-4 w-40 rounded
-              bg-white/10
-            "
-          />
-
-          <div
-            className="
-              h-3 w-24 rounded
-              bg-white/10
-            "
-          />
-        </div>
-      </div>
-
-      <div
-        className="
-          h-[320px]
-          bg-white/10
-        "
-      />
-
-      <div className="space-y-3 p-5">
-        <div
-          className="
-            h-4 w-full rounded
-            bg-white/10
-          "
-        />
-
-        <div
-          className="
-            h-4 w-2/3 rounded
-            bg-white/10
-          "
-        />
-      </div>
-    </div>
-  );
-}
-
-/* TRENDING */
-function TrendingItem({
-  tag,
-  posts,
-}) {
-  return (
-    <div
-      data-tooltip-id="global-tooltip"
-      data-tooltip-content={`Explore #${tag}`}
-      className="cursor-pointer"
-    >
-      <p className="font-semibold">
-        #{tag}
-      </p>
-
-      <p className="text-sm text-slate-400">
-        {posts}
-      </p>
-    </div>
-  );
-}
-
-/* COMMUNITY */
-function CommunityItem({ name }) {
-  return (
-    <div
-      className="
-        flex items-center
-        justify-between
-      "
-    >
-      <div className="flex items-center gap-3">
-        <div
-          data-tooltip-id="global-tooltip"
-          data-tooltip-content={name}
-          className="
-            h-12 w-12 rounded-2xl
-            bg-gradient-to-br
-            from-indigo-500/30
-            to-cyan-500/30
-            cursor-pointer
-          "
-        />
-
-        <div>
-          <p className="font-medium">
-            {name}
-          </p>
-
-          <p className="text-sm text-slate-400">
-            12k members
-          </p>
-        </div>
-      </div>
-
-      <button
-        data-tooltip-id="global-tooltip"
-        data-tooltip-content={`Join ${name}`}
-        className="
-          rounded-xl
-          bg-white px-4 py-2
-          text-sm font-semibold
-          text-black
-        "
-      >
-        Join
-      </button>
-    </div>
   );
 }
