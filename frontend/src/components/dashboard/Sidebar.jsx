@@ -11,6 +11,9 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
+
 import { logout } from "../../features/auth/authSlice";
 import { canAccessRoute } from "../../utils/onboardingGuard";
 
@@ -46,28 +49,32 @@ export default function Sidebar() {
         lg:block
       "
     >
-      {/* LOGO */}
-      <div className="mb-10 flex items-center gap-3">
+      {/* LOGO SECTION - MATCHES HERO SECTION */}
+      <div className="mb-10 flex items-center gap-4">
         <div
           className="
             flex h-12 w-12
             items-center justify-center
+            overflow-hidden
             rounded-2xl
-            bg-gradient-to-br
-            from-indigo-500
-            to-cyan-500
-            text-xl font-bold
+            border border-white/10
+            bg-white/[0.04]
+            shadow-lg
+            shadow-indigo-500/10
           "
         >
-          C
+          <img
+            src="/logo_v2.png"
+            alt="ConnectSphere Logo"
+            className="h-8 w-8 object-contain"
+          />
         </div>
 
         <div>
-          <h1 className="text-xl font-black">
+          <h1 className="text-lg font-black tracking-tight text-white">
             ConnectSphere
           </h1>
-
-          <p className="text-sm text-slate-400">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
             Social Platform
           </p>
         </div>
@@ -196,18 +203,19 @@ function SidebarItem({ to, icon, text, onClick }) {
     <NavLink
       to={to}
       onClick={(e) => onClick(to, e)}
+      data-tooltip-id={`tooltip-${text}`}
+      data-tooltip-content={text}
       className={({ isActive }) =>
         `
-          flex w-full
-          items-center gap-4
-          rounded-2xl px-4 py-3
-          transition-all
-          ${
-            isActive
-              ? "bg-white text-black"
-              : "text-slate-300 hover:bg-white/5"
-          }
-        `
+      flex w-full
+      items-center gap-4
+      rounded-2xl px-4 py-3
+      transition-all
+      ${isActive
+          ? "bg-white text-black"
+          : "text-slate-300 hover:bg-white/5"
+        }
+    `
       }
     >
       {icon}
@@ -215,6 +223,8 @@ function SidebarItem({ to, icon, text, onClick }) {
       <span className="font-medium">
         {text}
       </span>
+
+      <Tooltip id={`tooltip-${text}`} place="right" />
     </NavLink>
   );
 }

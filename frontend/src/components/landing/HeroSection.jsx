@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   MessageCircle,
   Users,
-  Sparkles,
 } from "lucide-react";
 
 import FloatingCard from "./FloatingCard";
@@ -44,29 +43,47 @@ export default function HeroSection() {
         className="relative z-10"
       >
         {/* LOGO */}
-        <div className="mb-8 flex items-center gap-3">
+        <div className="mb-10 flex items-center gap-4">
+          {/* LOGO IMAGE */}
           <div
             className="
-              rounded-2xl
-              bg-gradient-to-br
-              from-indigo-500
-              to-cyan-500
-              p-3
-            "
+      flex h-14 w-14
+      items-center justify-center
+      overflow-hidden
+      rounded-2xl
+      border border-white/10
+      bg-white/[0.04]
+      backdrop-blur-xl
+      shadow-lg
+      shadow-indigo-500/10
+    "
           >
-            <Sparkles className="text-white" />
+            <img
+              src="/logo_v2.png"
+              alt="ConnectSphere Logo"
+              className="
+        h-10 w-10
+        object-contain
+      "
+            />
           </div>
 
-          <h1
-            className="
-              text-xl font-bold
-              tracking-tight
-              text-white
-              sm:text-2xl
-            "
-          >
-            ConnectSphere
-          </h1>
+          {/* TEXT */}
+          <div>
+            <h1
+              className="
+        text-xl
+        font-black
+        tracking-tight
+      "
+            >
+              ConnectSphere
+            </h1>
+
+            <p className="text-sm text-slate-400">
+              Social Platform
+            </p>
+          </div>
         </div>
 
         {/* HEADING */}

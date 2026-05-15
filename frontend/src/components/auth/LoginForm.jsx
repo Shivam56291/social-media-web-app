@@ -9,7 +9,7 @@ import { useDispatch } from "react-redux";
 import {
   EnvelopeSimple,
   Lock,
-  Globe,
+  GoogleLogoIcon,
 } from "@phosphor-icons/react";
 
 import Input from "../common/Input";
@@ -309,8 +309,8 @@ export default function LoginForm({
             hover:bg-white/[0.06]
           "
         >
-          <Globe
-            size={18}
+          <GoogleLogoIcon
+            size={24}
             weight="duotone"
           />
 

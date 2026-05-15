@@ -11,6 +11,9 @@ import {
   UsersThree,
 } from "@phosphor-icons/react";
 
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
+
 import { useSelector } from "react-redux";
 
 const STORIES = [
@@ -77,7 +80,10 @@ export default function FeedPage() {
           />
         </div>
 
+        {/* CREATE BUTTON */}
         <button
+          data-tooltip-id="global-tooltip"
+          data-tooltip-content="Create Post"
           className="
             flex h-12 w-12
             items-center justify-center
@@ -106,6 +112,8 @@ export default function FeedPage() {
           {STORIES.map((story) => (
             <div
               key={story}
+              data-tooltip-id="global-tooltip"
+              data-tooltip-content={`${story}'s Story`}
               className="flex flex-col items-center"
             >
               <div
@@ -117,6 +125,7 @@ export default function FeedPage() {
                   from-indigo-500
                   to-cyan-500
                   p-[2px]
+                  cursor-pointer
                 "
               >
                 <div
@@ -240,6 +249,22 @@ export default function FeedPage() {
           </div>
         </aside>
       </div>
+
+      {/* GLOBAL TOOLTIP */}
+      <Tooltip
+        id="global-tooltip"
+        place="bottom"
+        className="
+          !rounded-xl
+          !bg-[#111827]
+          !text-white
+          !px-3
+          !py-2
+          !text-sm
+          !shadow-xl
+          !z-50
+        "
+      />
     </>
   );
 }
@@ -259,6 +284,8 @@ function PostCard({ user }) {
       <div className="flex items-center justify-between p-5">
         <div className="flex items-center gap-4">
           <div
+            data-tooltip-id="global-tooltip"
+            data-tooltip-content={user?.username}
             className="
               flex h-14 w-14
               items-center justify-center
@@ -267,6 +294,7 @@ function PostCard({ user }) {
               from-indigo-500
               to-cyan-500
               font-bold
+              cursor-pointer
             "
           >
             {user?.username
@@ -285,7 +313,11 @@ function PostCard({ user }) {
           </div>
         </div>
 
-        <button>
+        {/* MORE BUTTON */}
+        <button
+          data-tooltip-id="global-tooltip"
+          data-tooltip-content="More Options"
+        >
           <DotsThree
             size={24}
             className="text-slate-400"
@@ -295,8 +327,11 @@ function PostCard({ user }) {
 
       {/* IMAGE */}
       <div
+        data-tooltip-id="global-tooltip"
+        data-tooltip-content="View Post"
         className="
           h-[320px]
+          cursor-pointer
           bg-gradient-to-br
           from-indigo-500/30
           via-cyan-500/20
@@ -307,7 +342,11 @@ function PostCard({ user }) {
       {/* CONTENT */}
       <div className="p-5">
         <div className="mb-4 flex items-center gap-5">
-          <button>
+          {/* LIKE */}
+          <button
+            data-tooltip-id="global-tooltip"
+            data-tooltip-content="Like"
+          >
             <Heart
               size={24}
               className="text-pink-400"
@@ -315,14 +354,22 @@ function PostCard({ user }) {
             />
           </button>
 
-          <button>
+          {/* COMMENT */}
+          <button
+            data-tooltip-id="global-tooltip"
+            data-tooltip-content="Comments"
+          >
             <ChatCircleDots
               size={24}
               className="text-slate-300"
             />
           </button>
 
-          <button>
+          {/* SHARE */}
+          <button
+            data-tooltip-id="global-tooltip"
+            data-tooltip-content="Share Post"
+          >
             <TrendUp
               size={24}
               className="text-slate-300"
@@ -410,7 +457,11 @@ function TrendingItem({
   posts,
 }) {
   return (
-    <div>
+    <div
+      data-tooltip-id="global-tooltip"
+      data-tooltip-content={`Explore #${tag}`}
+      className="cursor-pointer"
+    >
       <p className="font-semibold">
         #{tag}
       </p>
@@ -433,11 +484,14 @@ function CommunityItem({ name }) {
     >
       <div className="flex items-center gap-3">
         <div
+          data-tooltip-id="global-tooltip"
+          data-tooltip-content={name}
           className="
             h-12 w-12 rounded-2xl
             bg-gradient-to-br
             from-indigo-500/30
             to-cyan-500/30
+            cursor-pointer
           "
         />
 
@@ -453,6 +507,8 @@ function CommunityItem({ name }) {
       </div>
 
       <button
+        data-tooltip-id="global-tooltip"
+        data-tooltip-content={`Join ${name}`}
         className="
           rounded-xl
           bg-white px-4 py-2
