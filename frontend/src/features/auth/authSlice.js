@@ -34,6 +34,12 @@ const authSlice = createSlice({
 
   state.user =
     action.payload.user;
+
+  /* SAVE AUTH TO STORAGE */
+  authStorage.setAuth(
+    action.payload,
+    action.payload.remember ?? true
+  );
 },
 
     logout: (state) => {

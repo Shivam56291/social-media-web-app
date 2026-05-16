@@ -37,6 +37,30 @@ export const authStorage = {
       sessionStorage.getItem("refresh")
     );
   },
+  setAccessToken(access) {
+
+  const storage =
+    localStorage.getItem("access")
+      ? localStorage
+      : sessionStorage;
+
+  storage.setItem(
+    "access",
+    access
+  );
+  },
+  setRefreshToken(refresh) {
+
+  const storage =
+    localStorage.getItem("refresh")
+      ? localStorage
+      : sessionStorage;
+
+  storage.setItem(
+    "refresh",
+    refresh
+  );
+},
 
   getUser() {
 

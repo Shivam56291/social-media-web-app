@@ -1,3 +1,7 @@
+from rest_framework_simplejwt.views import (
+    TokenRefreshView,
+)
+
 from apps.users.views import (
     UpdateProfileView,
     UpdateEmailView,
@@ -26,6 +30,12 @@ urlpatterns = [
     path(
         'login/',
         LoginView.as_view()
+    ),
+
+    path(
+        'token/refresh/',
+        TokenRefreshView.as_view(),
+        name='token_refresh'
     ),
 
     path(

@@ -11,13 +11,28 @@ export const authService = {
   },
 
   login: async (data) => {
-    const response = await api.post(
-      "/users/login/",
-      data
+  const response = await api.post(
+    "/users/login/",
+    data
+  );
+
+  return response.data;
+},
+
+refreshToken: async (
+  refresh
+) => {
+
+  const response =
+    await api.post(
+      "/users/token/refresh/",
+      {
+        refresh,
+      }
     );
 
-    return response.data;
-  },
+  return response.data;
+},
 
   getCurrentUser: async () => {
     const response = await api.get(
