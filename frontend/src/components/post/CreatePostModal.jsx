@@ -5,13 +5,16 @@ import {
 } from "react";
 
 import {
+  useDispatch,
+} from "react-redux";
+
+import {
   motion,
   AnimatePresence,
 } from "framer-motion";
 
 import {
   X,
-  Image,
   Smiley,
   SpinnerGap,
   Sparkle,
@@ -20,31 +23,54 @@ import {
 import { showToast }
   from "../../utils/toast";
 
+import {
+  addPost,
+} from "../../features/feed/feedSlice";
+
 import EmojiPickerBox
   from "./EmojiPickerBox";
 
 import PostMediaPreview
   from "./PostMediaPreview";
 
+import { postService }
+  from "../../services/postService";
+
+import { uploadImage }
+  from "../../services/cloudinaryService";
+
 export default function CreatePostModal({
   open,
   onClose,
   user,
 }) {
+
+  const dispatch = useDispatch();
+
   const [caption, setCaption] =
     useState("");
 
   const [showEmoji, setShowEmoji] =
     useState(false);
 
-  const [imageFile, setImageFile] =
-    useState(null);
+  /* CLOUDINARY URL */
+  const [imageUrl, setImageUrl] =
+    useState("");
 
+  /* LOCAL PREVIEW */
   const [imagePreview, setImagePreview] =
     useState("");
 
   const [loading, setLoading] =
     useState(false);
+
+  const [
+    uploadingImage,
+    setUploadingImage,
+  ] = useState(false);
+
+  const [apiError, setApiError] =
+    useState("");
 
   const imageInputRef = useRef();
 
@@ -52,59 +78,175 @@ export default function CreatePostModal({
 
   /* AUTO FOCUS */
   useEffect(() => {
+
     if (open) {
+
       setTimeout(() => {
         textareaRef.current?.focus();
       }, 200);
+
     }
+
   }, [open]);
 
-  /* CLEANUP OBJECT URL */
+  /* CLEANUP */
   useEffect(() => {
+
     return () => {
-      if (imagePreview) {
+
+      if (
+        imagePreview &&
+        imagePreview.startsWith("blob:")
+      ) {
+
         URL.revokeObjectURL(
           imagePreview
         );
+
       }
     };
+
   }, [imagePreview]);
 
-  /* IMAGE PICK */
-  const handleImagePick = (e) => {
-    const file = e.target.files[0];
+  /* RESET */
+  const resetState = () => {
 
-    if (!file) return;
+    if (
+      imagePreview &&
+      imagePreview.startsWith("blob:")
+    ) {
 
-    if (imagePreview) {
       URL.revokeObjectURL(
         imagePreview
       );
+
     }
 
-    setImageFile(file);
-
-    setImagePreview(
-      URL.createObjectURL(file)
-    );
-  };
-
-  /* REMOVE IMAGE */
-  const removeMedia = () => {
-    if (imagePreview) {
-      URL.revokeObjectURL(
-        imagePreview
-      );
-    }
-
-    setImageFile(null);
+    setCaption("");
     setImagePreview("");
+    setImageUrl("");
+    setShowEmoji(false);
+    setApiError("");
   };
 
-  /* EMOJI INSERT */
+  /* IMAGE PICK */
+  const handleImagePick =
+    async (e) => {
+
+      const file =
+        e.target.files[0];
+
+      if (!file) return;
+
+      try {
+
+        setUploadingImage(true);
+
+        setApiError("");
+
+        /* VALIDATION */
+        if (
+          !file.type.startsWith(
+            "image/"
+          )
+        ) {
+
+          showToast.error(
+            "Only image files allowed"
+          );
+
+          return;
+        }
+
+        /* 5MB */
+        if (
+          file.size >
+          5 * 1024 * 1024
+        ) {
+
+          showToast.error(
+            "Image must be under 5MB"
+          );
+
+          return;
+        }
+
+        /* REMOVE OLD */
+        if (
+          imagePreview &&
+          imagePreview.startsWith(
+            "blob:"
+          )
+        ) {
+
+          URL.revokeObjectURL(
+            imagePreview
+          );
+
+        }
+
+        /* LOCAL PREVIEW */
+        const localPreview =
+          URL.createObjectURL(file);
+
+        setImagePreview(
+          localPreview
+        );
+
+        /* CLOUDINARY */
+        const uploadedUrl =
+          await uploadImage(file);
+
+        setImageUrl(uploadedUrl);
+
+        showToast.success(
+          "Photo uploaded ✨"
+        );
+
+      } catch (error) {
+
+        console.log(error);
+
+        setApiError(
+          "Image upload failed"
+        );
+
+        showToast.error(
+          "Upload failed ✨"
+        );
+
+        setImagePreview("");
+        setImageUrl("");
+
+      } finally {
+
+        setUploadingImage(false);
+      }
+    };
+
+  /* REMOVE MEDIA */
+  const removeMedia = () => {
+
+    if (
+      imagePreview &&
+      imagePreview.startsWith("blob:")
+    ) {
+
+      URL.revokeObjectURL(
+        imagePreview
+      );
+
+    }
+
+    setImagePreview("");
+    setImageUrl("");
+  };
+
+  /* EMOJI */
   const handleEmojiClick = (
     emojiData
   ) => {
+
     const emoji =
       emojiData.emoji;
 
@@ -112,6 +254,7 @@ export default function CreatePostModal({
       textareaRef.current;
 
     if (!textarea) {
+
       setCaption(
         (prev) => prev + emoji
       );
@@ -133,6 +276,7 @@ export default function CreatePostModal({
     setCaption(newText);
 
     requestAnimationFrame(() => {
+
       textarea.focus();
 
       const cursor =
@@ -148,31 +292,66 @@ export default function CreatePostModal({
   /* SUBMIT */
   const handleCreatePost =
     async () => {
+
+      if (uploadingImage) return;
+
       try {
+
         setLoading(true);
 
-        await new Promise((r) =>
-          setTimeout(r, 1500)
+        setApiError("");
+
+        const payload = {
+          content:
+            caption.trim(),
+
+          image_urls:
+            imageUrl
+              ? [imageUrl]
+              : [],
+        };
+
+        const createdPost =
+          await postService.createPost(
+            payload
+          );
+
+        /* INSTANT FEED UPDATE */
+        dispatch(
+          addPost(createdPost)
         );
 
+        /* CLOSE MODAL FAST */
+        onClose();
+
+        /* SCROLL TO TOP */
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+
+        /* RESET */
+        resetState();
+
+        /* TOAST */
         showToast.success(
           "Post published ✨"
         );
 
-        setCaption("");
-
-        removeMedia();
-
-        onClose();
-
       } catch (error) {
+
         console.log(error);
 
-        showToast.error(
+        setApiError(
           "Failed to publish post"
         );
 
+        showToast.error(
+          "Post publish failed ✨"
+        );
+
       } finally {
+
         setLoading(false);
       }
     };
@@ -181,10 +360,12 @@ export default function CreatePostModal({
 
   return (
     <AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={onClose}
         className="
           fixed inset-0
           z-[100]
@@ -194,6 +375,7 @@ export default function CreatePostModal({
           p-4
         "
       >
+
         <div
           className="
             flex min-h-full
@@ -201,10 +383,11 @@ export default function CreatePostModal({
             justify-center
           "
         >
+
           <motion.div
             initial={{
               opacity: 0,
-              y: 50,
+              y: 40,
               scale: 0.96,
             }}
             animate={{
@@ -218,8 +401,11 @@ export default function CreatePostModal({
               scale: 0.96,
             }}
             transition={{
-              duration: 0.28,
+              duration: 0.25,
             }}
+            onClick={(e) =>
+              e.stopPropagation()
+            }
             className="
               relative w-full
               max-w-2xl
@@ -231,31 +417,23 @@ export default function CreatePostModal({
               backdrop-blur-3xl
             "
           >
-            {/* BACKGROUND GLOW */}
-            <div
-              className="
-                absolute inset-0
-                bg-gradient-to-br
-                from-cyan-500/10
-                via-indigo-500/5
-                to-pink-500/10
-              "
-            />
 
             {/* HEADER */}
             <div
               className="
-                relative flex
-                items-center
+                flex items-center
                 justify-between
                 border-b border-white/10
                 px-6 py-5
               "
             >
+
               <div>
+
                 <h2
                   className="
-                    text-2xl font-black
+                    text-2xl
+                    font-black
                   "
                 >
                   Create Post
@@ -269,6 +447,7 @@ export default function CreatePostModal({
                 >
                   Share your moment ✨
                 </p>
+
               </div>
 
               <button
@@ -280,17 +459,17 @@ export default function CreatePostModal({
                   rounded-2xl
                   bg-white/[0.05]
                   transition-all
-                  duration-300
                   hover:rotate-90
-                  hover:bg-white/[0.08]
                 "
               >
                 <X size={20} />
               </button>
+
             </div>
 
             {/* BODY */}
-            <div className="relative p-6">
+            <div className="p-6">
+
               {/* USER */}
               <div
                 className="
@@ -298,6 +477,7 @@ export default function CreatePostModal({
                   items-center gap-4
                 "
               >
+
                 <div
                   className="
                     flex h-14 w-14
@@ -311,7 +491,9 @@ export default function CreatePostModal({
                     font-bold
                   "
                 >
+
                   {user?.avatar_url ? (
+
                     <img
                       src={
                         user.avatar_url
@@ -324,14 +506,19 @@ export default function CreatePostModal({
                         object-cover
                       "
                     />
+
                   ) : (
+
                     user?.username
                       ?.charAt(0)
                       ?.toUpperCase()
+
                   )}
+
                 </div>
 
                 <div>
+
                   <h3
                     className="
                       text-[15px]
@@ -350,11 +537,13 @@ export default function CreatePostModal({
                     Your followers can
                     see this post
                   </p>
+
                 </div>
               </div>
 
               {/* TEXTAREA */}
               <div className="relative">
+
                 <textarea
                   ref={textareaRef}
                   value={caption}
@@ -366,7 +555,7 @@ export default function CreatePostModal({
                   }
                   placeholder="What's happening today?"
                   className="
-                    min-h-[190px]
+                    min-h-[170px]
                     w-full resize-none
                     rounded-[28px]
                     border border-white/10
@@ -376,16 +565,14 @@ export default function CreatePostModal({
                     text-[15px]
                     outline-none
                     transition-all
-                    duration-300
                     placeholder:text-slate-500
                     focus:border-cyan-400/30
-                    focus:bg-white/[0.06]
-                    focus:shadow-[0_0_30px_rgba(6,182,212,0.12)]
                   "
                 />
 
-                {/* EMOJI BUTTON */}
+                {/* EMOJI */}
                 <button
+                  type="button"
                   onClick={() =>
                     setShowEmoji(
                       !showEmoji
@@ -398,21 +585,12 @@ export default function CreatePostModal({
                     justify-center
                     rounded-2xl
                     bg-white/[0.05]
-                    transition-all
-                    duration-300
-                    hover:scale-105
-                    hover:bg-yellow-500/10
                   "
                 >
-                  <Smiley
-                    size={22}
-                    className="
-                      text-yellow-300
-                    "
-                  />
+                  <Smiley size={22} />
                 </button>
 
-                {/* CHARACTER */}
+                {/* COUNT */}
                 <div
                   className="
                     absolute bottom-5 right-5
@@ -423,31 +601,57 @@ export default function CreatePostModal({
                   {caption.length}/500
                 </div>
 
-                {/* PICKER */}
+                {/* EMOJI PICKER */}
                 <AnimatePresence>
+
                   {showEmoji && (
+
                     <EmojiPickerBox
                       onEmojiClick={
                         handleEmojiClick
                       }
                       onClose={() =>
-                        setShowEmoji(
-                          false
-                        )
+                        setShowEmoji(false)
                       }
                     />
+
                   )}
+
                 </AnimatePresence>
               </div>
 
               {/* MEDIA */}
               <PostMediaPreview
-                imagePreview={imagePreview}
-                removeMedia={removeMedia}
+                imagePreview={
+                  imagePreview
+                }
+                removeMedia={
+                  removeMedia
+                }
                 onPickImage={() =>
                   imageInputRef.current.click()
                 }
+                uploadingImage={
+                  uploadingImage
+                }
               />
+
+              {/* ERROR */}
+              {apiError && (
+
+                <div
+                  className="
+                    mt-5 rounded-2xl
+                    border border-red-500/20
+                    bg-red-500/10
+                    p-4 text-sm
+                    text-red-300
+                  "
+                >
+                  {apiError}
+                </div>
+
+              )}
 
               {/* FOOTER */}
               <div
@@ -463,15 +667,19 @@ export default function CreatePostModal({
                   type="file"
                   accept="image/*"
                   ref={imageInputRef}
-                  onChange={handleImagePick}
+                  onChange={
+                    handleImagePick
+                  }
                 />
 
-                {/* POST */}
                 <button
                   disabled={
                     loading ||
-                    (!caption.trim() &&
-                      !imagePreview)
+                    uploadingImage ||
+                    (
+                      !caption.trim() &&
+                      !imageUrl
+                    )
                   }
                   onClick={
                     handleCreatePost
@@ -484,16 +692,13 @@ export default function CreatePostModal({
                     to-cyan-500
                     px-8 py-3
                     font-semibold
-                    shadow-lg
-                    shadow-cyan-500/20
                     transition-all
-                    duration-300
-                    hover:scale-[1.02]
-                    disabled:cursor-not-allowed
                     disabled:opacity-50
                   "
                 >
+
                   {loading ? (
+
                     <>
                       <SpinnerGap
                         size={18}
@@ -504,13 +709,18 @@ export default function CreatePostModal({
 
                       Publishing...
                     </>
+
                   ) : (
+
                     <>
                       <Sparkle size={18} />
                       Publish
                     </>
+
                   )}
+
                 </button>
+
               </div>
             </div>
           </motion.div>
