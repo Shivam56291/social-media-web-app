@@ -1,4 +1,5 @@
 export default function PostSkeleton() {
+
   return (
     <div
       className="
@@ -10,8 +11,15 @@ export default function PostSkeleton() {
         backdrop-blur-xl
       "
     >
+
       {/* HEADER */}
-      <div className="flex items-center gap-4 p-5">
+      <div
+        className="
+          flex items-center
+          gap-4 p-5
+        "
+      >
+
         <div
           className="
             h-14 w-14
@@ -21,6 +29,7 @@ export default function PostSkeleton() {
         />
 
         <div className="flex-1 space-y-2">
+
           <div
             className="
               h-4 w-40
@@ -36,19 +45,14 @@ export default function PostSkeleton() {
               bg-white/10
             "
           />
+
         </div>
+
       </div>
 
-      {/* IMAGE */}
-      <div
-        className="
-          h-[320px]
-          bg-white/10
-        "
-      />
+      {/* TEXT */}
+      <div className="px-5 pb-4 space-y-3">
 
-      {/* CONTENT */}
-      <div className="space-y-3 p-5">
         <div
           className="
             h-4 w-full
@@ -64,7 +68,43 @@ export default function PostSkeleton() {
             bg-white/10
           "
         />
+
       </div>
+
+      {/* IMAGE */}
+      <div
+        className="
+          h-[420px]
+          bg-white/10
+        "
+      />
+
+      {/* ACTIONS */}
+      <div
+        className="
+          flex gap-6
+          p-5
+        "
+      >
+
+        <div
+          className="
+            h-5 w-16
+            rounded-lg
+            bg-white/10
+          "
+        />
+
+        <div
+          className="
+            h-5 w-16
+            rounded-lg
+            bg-white/10
+          "
+        />
+
+      </div>
+
     </div>
   );
 }

@@ -1,278 +1,273 @@
+import { useState } from "react";
+
 import {
   motion,
   AnimatePresence,
 } from "framer-motion";
 
 import {
-  Sparkle,
-  X,
+  CaretLeft,
+  CaretRight,
   Image,
-  ArrowsClockwise,
+  Plus,
+  X,
 } from "@phosphor-icons/react";
 
 export default function PostMediaPreview({
-  imagePreview,
+  imagePreviews,
   removeMedia,
   onPickImage,
 }) {
-  return (
-    <motion.div
-      layout
-      initial={{
-        opacity: 0,
-        y: 12,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        duration: 0.3,
-      }}
-      className="mt-5"
-    >
+
+  const [activeIndex, setActiveIndex] =
+    useState(0);
+
+  const nextImage = () => {
+
+    if (
+      activeIndex <
+      imagePreviews.length - 1
+    ) {
+
+      setActiveIndex(
+        activeIndex + 1
+      );
+    }
+  };
+
+  const prevImage = () => {
+
+    if (activeIndex > 0) {
+
+      setActiveIndex(
+        activeIndex - 1
+      );
+    }
+  };
+
+  if (
+    !imagePreviews.length
+  ) {
+
+    return (
       <div
+        onClick={onPickImage}
         className="
-          relative overflow-hidden
-          rounded-[30px]
-          border border-white/10
-          bg-[#0F172A]
-          shadow-[0_10px_60px_rgba(0,0,0,0.45)]
+          mt-5 flex
+          aspect-square
+          cursor-pointer
+          flex-col
+          items-center
+          justify-center
+          rounded-[32px]
+          border border-dashed
+          border-white/10
+          bg-white/[0.03]
         "
       >
-        {/* FIXED PREVIEW AREA */}
-        <div
-          onClick={
-            !imagePreview
-              ? onPickImage
-              : undefined
-          }
+        <Plus size={42} />
+
+        <p
           className="
-            relative aspect-[4/5]
-            w-full
-            max-h-[420px]
-            min-h-[320px]
-            overflow-hidden
-            cursor-pointer
-            bg-gradient-to-br
-            from-[#0F172A]
-            to-[#111827]
+            mt-4 text-sm
+            text-slate-400
           "
         >
-          {/* EMPTY STATE */}
-          {!imagePreview && (
-            <motion.div
-              initial={{
-                opacity: 0,
-                scale: 0.96,
-              }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-              }}
-              className="
-                absolute inset-0
-                flex flex-col
-                items-center
-                justify-center
-                text-center
-              "
+          Add photos
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-5">
+
+      {/* MAIN IMAGE */}
+      <div
+        className="
+          relative
+          aspect-square
+          overflow-hidden
+          rounded-[32px]
+          bg-black
+        "
+      >
+
+        <AnimatePresence mode="wait">
+
+          <motion.img
+            key={imagePreviews[activeIndex]}
+            initial={{
+              opacity: 0,
+              scale: 1.03,
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+            }}
+            exit={{
+              opacity: 0,
+            }}
+            transition={{
+              duration: 0.2,
+            }}
+            src={
+              imagePreviews[
+                activeIndex
+              ]
+            }
+            alt=""
+            className="
+              h-full
+              w-full
+              object-cover
+            "
+          />
+
+        </AnimatePresence>
+
+        {/* IMAGE COUNT */}
+        <div
+          className="
+            absolute right-4 top-4
+            rounded-full
+            bg-black/60
+            px-3 py-1
+            text-xs
+            backdrop-blur-xl
+          "
+        >
+          {activeIndex + 1}/
+          {imagePreviews.length}
+        </div>
+
+        {/* LEFT */}
+        {activeIndex > 0 && (
+
+          <button
+            onClick={prevImage}
+            className="
+              absolute left-3 top-1/2
+              flex h-10 w-10
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-full
+              bg-black/50
+              backdrop-blur-xl
+            "
+          >
+            <CaretLeft size={18} />
+          </button>
+
+        )}
+
+        {/* RIGHT */}
+        {activeIndex <
+          imagePreviews.length - 1 && (
+
+          <button
+            onClick={nextImage}
+            className="
+              absolute right-3 top-1/2
+              flex h-10 w-10
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-full
+              bg-black/50
+              backdrop-blur-xl
+            "
+          >
+            <CaretRight size={18} />
+          </button>
+
+        )}
+
+        {/* REMOVE */}
+        <button
+          onClick={() =>
+            removeMedia(activeIndex)
+          }
+          className="
+            absolute bottom-4 right-4
+            flex h-10 w-10
+            items-center
+            justify-center
+            rounded-full
+            bg-red-500/80
+          "
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* THUMBNAILS */}
+      <div
+        className="
+          mt-4 flex gap-3
+          overflow-x-auto
+        "
+      >
+
+        {imagePreviews.map(
+          (image, index) => (
+
+            <button
+              key={image}
+              onClick={() =>
+                setActiveIndex(index)
+              }
+              className={`
+                relative h-20
+                w-20 shrink-0
+                overflow-hidden
+                rounded-2xl
+                border
+                ${
+                  activeIndex ===
+                  index
+                    ? "border-cyan-400"
+                    : "border-white/10"
+                }
+              `}
             >
-              {/* GLOW */}
-              <div
-                className="
-                  absolute inset-0
-                  bg-gradient-to-br
-                  from-cyan-500/5
-                  via-indigo-500/5
-                  to-pink-500/5
-                "
-              />
 
-              {/* ICON */}
-              <motion.div
-                whileHover={{
-                  scale: 1.06,
-                }}
+              <img
+                src={image}
+                alt=""
                 className="
-                  relative mb-6
-                  flex h-24 w-24
-                  items-center
-                  justify-center
-                  rounded-[32px]
-                  border border-white/10
-                  bg-white/[0.04]
-                  backdrop-blur-2xl
-                "
-              >
-                <Sparkle
-                  size={42}
-                  className="
-                    text-cyan-300
-                  "
-                />
-              </motion.div>
-
-              <h3
-                className="
-                  text-xl font-bold
-                "
-              >
-                Upload Photo
-              </h3>
-
-              <p
-                className="
-                  mt-3 max-w-[260px]
-                  text-sm leading-6
-                  text-slate-400
-                "
-              >
-                Drag your audience into
-                your moment with premium
-                visuals ✨
-              </p>
-            </motion.div>
-          )}
-
-          {/* IMAGE */}
-          <AnimatePresence>
-            {imagePreview && (
-              <motion.img
-                key={imagePreview}
-                initial={{
-                  opacity: 0,
-                  scale: 1.08,
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                }}
-                exit={{
-                  opacity: 0,
-                }}
-                transition={{
-                  duration: 0.35,
-                }}
-                src={imagePreview}
-                alt="preview"
-                className="
-                  absolute inset-0
                   h-full w-full
                   object-cover
                 "
               />
-            )}
-          </AnimatePresence>
 
-          {/* OVERLAY */}
-          {imagePreview && (
-            <>
-              {/* TOP FADE */}
-              <div
-                className="
-                  pointer-events-none
-                  absolute inset-x-0 top-0
-                  h-28
-                  bg-gradient-to-b
-                  from-black/70
-                  to-transparent
-                "
-              />
+            </button>
+          )
+        )}
 
-              {/* BOTTOM FADE */}
-              <div
-                className="
-                  pointer-events-none
-                  absolute inset-x-0 bottom-0
-                  h-32
-                  bg-gradient-to-t
-                  from-black/80
-                  to-transparent
-                "
-              />
-            </>
-          )}
-        </div>
+        {/* ADD MORE */}
+        {imagePreviews.length <
+          10 && (
 
-        {/* CONTROLS */}
-        {imagePreview && (
-          <>
-            {/* REMOVE */}
-            <motion.button
-              whileHover={{
-                scale: 1.08,
-              }}
-              whileTap={{
-                scale: 0.95,
-              }}
-              onClick={removeMedia}
-              className="
-                absolute right-4 top-4
-                z-20 flex h-11
-                w-11 items-center
-                justify-center
-                rounded-full
-                border border-white/10
-                bg-black/50
-                backdrop-blur-2xl
-                transition-all
-                duration-300
-                hover:bg-red-500/20
-              "
-            >
-              <X size={18} />
-            </motion.button>
+          <button
+            onClick={onPickImage}
+            className="
+              flex h-20
+              w-20 shrink-0
+              items-center
+              justify-center
+              rounded-2xl
+              border border-dashed
+              border-white/10
+              bg-white/[0.03]
+            "
+          >
+            <Image size={24} />
+          </button>
 
-            {/* PHOTO TAG */}
-            <div
-              className="
-                absolute bottom-4 left-4
-                flex items-center gap-2
-                rounded-full
-                border border-white/10
-                bg-black/50
-                px-4 py-2
-                text-sm
-                backdrop-blur-2xl
-              "
-            >
-              <Image size={16} />
-              Photo
-            </div>
-
-            {/* CHANGE */}
-            <motion.button
-              whileHover={{
-                scale: 1.04,
-              }}
-              whileTap={{
-                scale: 0.97,
-              }}
-              onClick={onPickImage}
-              className="
-                absolute bottom-4 right-4
-                flex items-center gap-2
-                rounded-full
-                border border-white/10
-                bg-black/50
-                px-4 py-2
-                text-sm
-                backdrop-blur-2xl
-                transition-all
-                duration-300
-                hover:bg-cyan-500/20
-              "
-            >
-              <ArrowsClockwise
-                size={16}
-              />
-
-              Change
-            </motion.button>
-          </>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

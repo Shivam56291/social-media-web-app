@@ -53,13 +53,11 @@ export default function CreatePostModal({
   const [showEmoji, setShowEmoji] =
     useState(false);
 
-  /* CLOUDINARY URL */
-  const [imageUrl, setImageUrl] =
-    useState("");
+  const [imageUrls, setImageUrls] =
+    useState([]);
 
-  /* LOCAL PREVIEW */
-  const [imagePreview, setImagePreview] =
-    useState("");
+  const [imagePreviews, setImagePreviews] =
+    useState([]);
 
   const [loading, setLoading] =
     useState(false);
@@ -94,37 +92,39 @@ export default function CreatePostModal({
 
     return () => {
 
-      if (
-        imagePreview &&
-        imagePreview.startsWith("blob:")
-      ) {
+      imagePreviews.forEach((preview) => {
 
-        URL.revokeObjectURL(
-          imagePreview
-        );
+        if (
+          typeof preview === "string" &&
+          preview.startsWith("blob:")
+        ) {
 
-      }
+          URL.revokeObjectURL(preview);
+
+        }
+      });
     };
 
-  }, [imagePreview]);
+  }, [imagePreviews]);
 
   /* RESET */
   const resetState = () => {
 
-    if (
-      imagePreview &&
-      imagePreview.startsWith("blob:")
-    ) {
+    imagePreviews.forEach((preview) => {
 
-      URL.revokeObjectURL(
-        imagePreview
-      );
+      if (
+        typeof preview === "string" &&
+        preview.startsWith("blob:")
+      ) {
 
-    }
+        URL.revokeObjectURL(preview);
+
+      }
+    });
 
     setCaption("");
-    setImagePreview("");
-    setImageUrl("");
+    setImagePreviews([]);
+    setImageUrls([]);
     setShowEmoji(false);
     setApiError("");
   };
@@ -133,10 +133,23 @@ export default function CreatePostModal({
   const handleImagePick =
     async (e) => {
 
-      const file =
-        e.target.files[0];
+      const files =
+        Array.from(e.target.files);
 
-      if (!file) return;
+      if (!files.length) return;
+
+      if (
+        imagePreviews.length +
+        files.length >
+        10
+      ) {
+
+        showToast.error(
+          "Maximum 10 photos allowed"
+        );
+
+        return;
+      }
 
       try {
 
@@ -144,64 +157,65 @@ export default function CreatePostModal({
 
         setApiError("");
 
-        /* VALIDATION */
-        if (
-          !file.type.startsWith(
-            "image/"
-          )
-        ) {
+        const newPreviews = [];
+        const uploadedUrls = [];
 
-          showToast.error(
-            "Only image files allowed"
+        for (const file of files) {
+
+          if (
+            !file.type.startsWith(
+              "image/"
+            )
+          ) {
+            continue;
+          }
+
+          if (
+            file.size >
+            5 * 1024 * 1024
+          ) {
+
+            showToast.error(
+              "Each image must be under 5MB"
+            );
+
+            continue;
+          }
+
+          const preview =
+            URL.createObjectURL(file);
+
+          newPreviews.push(preview);
+
+          const uploadedUrl =
+            await uploadImage(file);
+
+          uploadedUrls.push(
+            uploadedUrl
           );
-
-          return;
         }
 
-        /* 5MB */
-        if (
-          file.size >
-          5 * 1024 * 1024
-        ) {
-
-          showToast.error(
-            "Image must be under 5MB"
-          );
-
-          return;
-        }
-
-        /* REMOVE OLD */
-        if (
-          imagePreview &&
-          imagePreview.startsWith(
-            "blob:"
-          )
-        ) {
-
-          URL.revokeObjectURL(
-            imagePreview
-          );
-
-        }
-
-        /* LOCAL PREVIEW */
-        const localPreview =
-          URL.createObjectURL(file);
-
-        setImagePreview(
-          localPreview
+        setImagePreviews(
+          (prev) => [
+            ...prev,
+            ...newPreviews,
+          ]
         );
 
-        /* CLOUDINARY */
-        const uploadedUrl =
-          await uploadImage(file);
-
-        setImageUrl(uploadedUrl);
-
-        showToast.success(
-          "Photo uploaded ✨"
+        setImageUrls(
+          (prev) => [
+            ...prev,
+            ...uploadedUrls,
+          ]
         );
+
+        if (uploadedUrls.length) {
+
+          showToast.success(
+            "Photos uploaded ✨"
+          );
+
+        }
 
       } catch (error) {
 
@@ -212,11 +226,8 @@ export default function CreatePostModal({
         );
 
         showToast.error(
-          "Upload failed ✨"
+          "Upload failed"
         );
-
-        setImagePreview("");
-        setImageUrl("");
 
       } finally {
 
@@ -225,21 +236,32 @@ export default function CreatePostModal({
     };
 
   /* REMOVE MEDIA */
-  const removeMedia = () => {
+  const removeMedia = (index) => {
+
+    const preview =
+      imagePreviews[index];
 
     if (
-      imagePreview &&
-      imagePreview.startsWith("blob:")
+      typeof preview === "string" &&
+      preview.startsWith("blob:")
     ) {
 
       URL.revokeObjectURL(
-        imagePreview
+        preview
       );
-
     }
 
-    setImagePreview("");
-    setImageUrl("");
+    setImagePreviews((prev) =>
+      prev.filter(
+        (_, i) => i !== index
+      )
+    );
+
+    setImageUrls((prev) =>
+      prev.filter(
+        (_, i) => i !== index
+      )
+    );
   };
 
   /* EMOJI */
@@ -304,11 +326,8 @@ export default function CreatePostModal({
         const payload = {
           content:
             caption.trim(),
-
           image_urls:
-            imageUrl
-              ? [imageUrl]
-              : [],
+            imageUrls,
         };
 
         const createdPost =
@@ -316,24 +335,19 @@ export default function CreatePostModal({
             payload
           );
 
-        /* INSTANT FEED UPDATE */
         dispatch(
           addPost(createdPost)
         );
 
-        /* CLOSE MODAL FAST */
         onClose();
 
-        /* SCROLL TO TOP */
         window.scrollTo({
           top: 0,
           behavior: "smooth",
         });
 
-        /* RESET */
         resetState();
 
-        /* TOAST */
         showToast.success(
           "Post published ✨"
         );
@@ -347,7 +361,7 @@ export default function CreatePostModal({
         );
 
         showToast.error(
-          "Post publish failed ✨"
+          "Post publish failed"
         );
 
       } finally {
@@ -369,75 +383,171 @@ export default function CreatePostModal({
         className="
           fixed inset-0
           z-[100]
-          overflow-y-auto
+          flex items-center
+          justify-center
           bg-black/70
           backdrop-blur-md
           p-4
         "
       >
 
-        <div
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 40,
+            scale: 0.96,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            scale: 1,
+          }}
+          exit={{
+            opacity: 0,
+            y: 30,
+            scale: 0.96,
+          }}
+          transition={{
+            duration: 0.25,
+          }}
+          onClick={(e) =>
+            e.stopPropagation()
+          }
           className="
-            flex min-h-full
-            items-center
-            justify-center
+            relative
+            flex
+            w-full
+            max-w-2xl
+            flex-col
+            overflow-hidden
+            rounded-[34px]
+            border border-white/10
+            bg-[#0B1120]/95
+            shadow-[0_0_100px_rgba(6,182,212,0.18)]
+            backdrop-blur-3xl
           "
+          style={{
+            maxHeight: "92vh",
+          }}
         >
 
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 40,
-              scale: 0.96,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            exit={{
-              opacity: 0,
-              y: 30,
-              scale: 0.96,
-            }}
-            transition={{
-              duration: 0.25,
-            }}
-            onClick={(e) =>
-              e.stopPropagation()
-            }
+          {/* HEADER */}
+          <div
             className="
-              relative w-full
-              max-w-2xl
-              overflow-hidden
-              rounded-[34px]
-              border border-white/10
-              bg-[#0B1120]/95
-              shadow-[0_0_100px_rgba(6,182,212,0.18)]
-              backdrop-blur-3xl
+              flex items-center
+              justify-between
+              border-b border-white/10
+              px-6 py-5
+              shrink-0
             "
           >
 
-            {/* HEADER */}
+            <div>
+
+              <h2
+                className="
+                  text-2xl
+                  font-black
+                "
+              >
+                Create Post
+              </h2>
+
+              <p
+                className="
+                  mt-1 text-sm
+                  text-slate-400
+                "
+              >
+                Share your moment ✨
+              </p>
+
+            </div>
+
+            <button
+              onClick={onClose}
+              className="
+                flex h-11 w-11
+                items-center
+                justify-center
+                rounded-2xl
+                bg-white/[0.05]
+                transition-all
+                hover:rotate-90
+              "
+            >
+              <X size={20} />
+            </button>
+
+          </div>
+
+          {/* SCROLLABLE BODY */}
+          <div
+            className="
+              flex-1
+              overflow-y-auto
+              px-6 py-5
+            "
+          >
+
+            {/* USER */}
             <div
               className="
-                flex items-center
-                justify-between
-                border-b border-white/10
-                px-6 py-5
+                mb-5 flex
+                items-center gap-4
               "
             >
 
+              <div
+                className="
+                  flex h-14 w-14
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  rounded-2xl
+                  bg-gradient-to-br
+                  from-cyan-500
+                  to-indigo-500
+                  font-bold
+                  shrink-0
+                "
+              >
+
+                {user?.avatar_url ? (
+
+                  <img
+                    src={
+                      user.avatar_url
+                    }
+                    alt={
+                      user.username
+                    }
+                    className="
+                      h-full w-full
+                      object-cover
+                    "
+                  />
+
+                ) : (
+
+                  user?.username
+                    ?.charAt(0)
+                    ?.toUpperCase()
+
+                )}
+
+              </div>
+
               <div>
 
-                <h2
+                <h3
                   className="
-                    text-2xl
-                    font-black
+                    text-[15px]
+                    font-semibold
                   "
                 >
-                  Create Post
-                </h2>
+                  {user?.username}
+                </h3>
 
                 <p
                   className="
@@ -445,287 +555,223 @@ export default function CreatePostModal({
                     text-slate-400
                   "
                 >
-                  Share your moment ✨
+                  Your followers can
+                  see this post
                 </p>
 
               </div>
+            </div>
 
-              <button
-                onClick={onClose}
+            {/* TEXTAREA */}
+            <div className="relative">
+
+              <textarea
+                ref={textareaRef}
+                value={caption}
+                maxLength={500}
+                onChange={(e) =>
+                  setCaption(
+                    e.target.value
+                  )
+                }
+                placeholder="What's happening today?"
                 className="
+                  min-h-[110px]
+                  max-h-[180px]
+                  w-full
+                  resize-none
+                  rounded-[28px]
+                  border border-white/10
+                  bg-white/[0.04]
+                  p-5
+                  pr-16
+                  text-[15px]
+                  leading-7
+                  outline-none
+                  transition-all
+                  placeholder:text-slate-500
+                  focus:border-cyan-400/30
+                "
+              />
+
+              {/* EMOJI */}
+              <button
+                type="button"
+                onClick={() =>
+                  setShowEmoji(
+                    !showEmoji
+                  )
+                }
+                className="
+                  absolute bottom-4 left-4
                   flex h-11 w-11
                   items-center
                   justify-center
                   rounded-2xl
                   bg-white/[0.05]
-                  transition-all
-                  hover:rotate-90
                 "
               >
-                <X size={20} />
+                <Smiley size={22} />
               </button>
 
-            </div>
-
-            {/* BODY */}
-            <div className="p-6">
-
-              {/* USER */}
+              {/* COUNT */}
               <div
                 className="
-                  mb-6 flex
-                  items-center gap-4
+                  absolute bottom-5 right-5
+                  text-xs
+                  text-slate-500
                 "
               >
-
-                <div
-                  className="
-                    flex h-14 w-14
-                    items-center
-                    justify-center
-                    overflow-hidden
-                    rounded-2xl
-                    bg-gradient-to-br
-                    from-cyan-500
-                    to-indigo-500
-                    font-bold
-                  "
-                >
-
-                  {user?.avatar_url ? (
-
-                    <img
-                      src={
-                        user.avatar_url
-                      }
-                      alt={
-                        user.username
-                      }
-                      className="
-                        h-full w-full
-                        object-cover
-                      "
-                    />
-
-                  ) : (
-
-                    user?.username
-                      ?.charAt(0)
-                      ?.toUpperCase()
-
-                  )}
-
-                </div>
-
-                <div>
-
-                  <h3
-                    className="
-                      text-[15px]
-                      font-semibold
-                    "
-                  >
-                    {user?.username}
-                  </h3>
-
-                  <p
-                    className="
-                      mt-1 text-sm
-                      text-slate-400
-                    "
-                  >
-                    Your followers can
-                    see this post
-                  </p>
-
-                </div>
+                {caption.length}/500
               </div>
 
-              {/* TEXTAREA */}
-              <div className="relative">
+              {/* EMOJI PICKER */}
+              <AnimatePresence>
 
-                <textarea
-                  ref={textareaRef}
-                  value={caption}
-                  maxLength={500}
-                  onChange={(e) =>
-                    setCaption(
-                      e.target.value
-                    )
-                  }
-                  placeholder="What's happening today?"
-                  className="
-                    min-h-[170px]
-                    w-full resize-none
-                    rounded-[28px]
-                    border border-white/10
-                    bg-white/[0.04]
-                    p-5
-                    pr-16
-                    text-[15px]
-                    outline-none
-                    transition-all
-                    placeholder:text-slate-500
-                    focus:border-cyan-400/30
-                  "
-                />
+                {showEmoji && (
 
-                {/* EMOJI */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowEmoji(
-                      !showEmoji
-                    )
-                  }
-                  className="
-                    absolute bottom-4 left-4
-                    flex h-11 w-11
-                    items-center
-                    justify-center
-                    rounded-2xl
-                    bg-white/[0.05]
-                  "
-                >
-                  <Smiley size={22} />
-                </button>
+                  <EmojiPickerBox
+                    onEmojiClick={
+                      handleEmojiClick
+                    }
+                    onClose={() =>
+                      setShowEmoji(false)
+                    }
+                  />
 
-                {/* COUNT */}
-                <div
-                  className="
-                    absolute bottom-5 right-5
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  {caption.length}/500
-                </div>
+                )}
 
-                {/* EMOJI PICKER */}
-                <AnimatePresence>
+              </AnimatePresence>
+            </div>
 
-                  {showEmoji && (
+            {/* MEDIA */}
+            <PostMediaPreview
+              imagePreviews={
+                imagePreviews
+              }
+              removeMedia={
+                removeMedia
+              }
+              onPickImage={() =>
+                imageInputRef.current.click()
+              }
+            />
 
-                    <EmojiPickerBox
-                      onEmojiClick={
-                        handleEmojiClick
-                      }
-                      onClose={() =>
-                        setShowEmoji(false)
-                      }
-                    />
+            {/* ERROR */}
+            {apiError && (
 
-                  )}
-
-                </AnimatePresence>
+              <div
+                className="
+                  mt-5 rounded-2xl
+                  border border-red-500/20
+                  bg-red-500/10
+                  p-4 text-sm
+                  text-red-300
+                "
+              >
+                {apiError}
               </div>
 
-              {/* MEDIA */}
-              <PostMediaPreview
-                imagePreview={
-                  imagePreview
-                }
-                removeMedia={
-                  removeMedia
-                }
-                onPickImage={() =>
-                  imageInputRef.current.click()
-                }
-                uploadingImage={
-                  uploadingImage
-                }
-              />
+            )}
 
-              {/* ERROR */}
-              {apiError && (
+          </div>
 
-                <div
-                  className="
-                    mt-5 rounded-2xl
-                    border border-red-500/20
-                    bg-red-500/10
-                    p-4 text-sm
-                    text-red-300
-                  "
-                >
-                  {apiError}
-                </div>
+          {/* FOOTER */}
+          <div
+            className="
+              flex items-center
+              justify-between
+              border-t border-white/10
+              px-6 py-5
+              shrink-0
+            "
+          >
+
+            <input
+              hidden
+              type="file"
+              accept="image/*"
+              multiple
+              ref={imageInputRef}
+              onChange={
+                handleImagePick
+              }
+            />
+
+            <button
+              type="button"
+              onClick={() =>
+                imageInputRef.current.click()
+              }
+              className="
+                rounded-2xl
+                border border-white/10
+                bg-white/[0.04]
+                px-5 py-3
+                text-sm
+                font-medium
+                transition-all
+                hover:bg-white/[0.08]
+              "
+            >
+              Add Photos
+            </button>
+
+            <button
+              disabled={
+                loading ||
+                uploadingImage ||
+                (
+                  !caption.trim() &&
+                  imageUrls.length === 0
+                )
+              }
+              onClick={
+                handleCreatePost
+              }
+              className="
+                flex items-center
+                gap-2 rounded-2xl
+                bg-gradient-to-r
+                from-indigo-500
+                to-cyan-500
+                px-8 py-3
+                font-semibold
+                transition-all
+                disabled:opacity-50
+              "
+            >
+
+              {loading ? (
+
+                <>
+                  <SpinnerGap
+                    size={18}
+                    className="
+                      animate-spin
+                    "
+                  />
+
+                  Publishing...
+                </>
+
+              ) : (
+
+                <>
+                  <Sparkle size={18} />
+                  Publish
+                </>
 
               )}
 
-              {/* FOOTER */}
-              <div
-                className="
-                  mt-6 flex
-                  items-center
-                  justify-between
-                "
-              >
+            </button>
 
-                <input
-                  hidden
-                  type="file"
-                  accept="image/*"
-                  ref={imageInputRef}
-                  onChange={
-                    handleImagePick
-                  }
-                />
+          </div>
 
-                <button
-                  disabled={
-                    loading ||
-                    uploadingImage ||
-                    (
-                      !caption.trim() &&
-                      !imageUrl
-                    )
-                  }
-                  onClick={
-                    handleCreatePost
-                  }
-                  className="
-                    flex items-center
-                    gap-2 rounded-2xl
-                    bg-gradient-to-r
-                    from-indigo-500
-                    to-cyan-500
-                    px-8 py-3
-                    font-semibold
-                    transition-all
-                    disabled:opacity-50
-                  "
-                >
+        </motion.div>
 
-                  {loading ? (
-
-                    <>
-                      <SpinnerGap
-                        size={18}
-                        className="
-                          animate-spin
-                        "
-                      />
-
-                      Publishing...
-                    </>
-
-                  ) : (
-
-                    <>
-                      <Sparkle size={18} />
-                      Publish
-                    </>
-
-                  )}
-
-                </button>
-
-              </div>
-            </div>
-          </motion.div>
-        </div>
       </motion.div>
+
     </AnimatePresence>
   );
 }

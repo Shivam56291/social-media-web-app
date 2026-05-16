@@ -9,7 +9,7 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         related_name="posts"
     )
-    content = models.TextField(max_length=1000)
+    content = models.TextField(max_length=500, blank=True)
     
     image_urls = ArrayField(
         models.URLField(),

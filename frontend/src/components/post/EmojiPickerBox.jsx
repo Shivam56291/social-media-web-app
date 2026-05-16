@@ -64,7 +64,7 @@ export default function EmojiPickerBox({
       className="
         absolute bottom-16 left-0
         z-50 overflow-hidden
-        rounded-3xl
+        rounded-[32px]
         border border-white/10
         bg-[#0F172A]
         shadow-[0_0_50px_rgba(6,182,212,0.15)]
@@ -75,6 +75,7 @@ export default function EmojiPickerBox({
         theme="dark"
         onEmojiClick={onEmojiClick}
         lazyLoadEmojis
+        
         width={340}
         height={420}
         previewConfig={{

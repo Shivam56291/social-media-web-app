@@ -8,7 +8,8 @@ import {
   motion,
 } from "framer-motion";
 
-import { Tooltip } from "react-tooltip";
+import { Tooltip }
+  from "react-tooltip";
 
 import {
   useDispatch,
@@ -20,31 +21,50 @@ import {
   setLoading,
 } from "../../features/feed/feedSlice";
 
-import FeedTopbar from "../../components/feed/FeedTopbar";
-import StoriesBar from "../../components/feed/StoriesBar";
-import PostCard from "../../components/feed/PostCard";
-import PostSkeleton from "../../components/feed/PostSkeleton";
-import RightSidebar from "../../components/feed/RightSidebar";
+import FeedTopbar
+  from "../../components/feed/FeedTopbar";
 
-import CreatePostModal from "../../components/post/CreatePostModal";
+import StoriesBar
+  from "../../components/feed/StoriesBar";
+
+import PostCard
+  from "../../components/feed/PostCard";
+
+import PostSkeleton
+  from "../../components/feed/PostSkeleton";
+
+import RightSidebar
+  from "../../components/feed/RightSidebar";
+
+import CreatePostModal
+  from "../../components/post/CreatePostModal";
 
 import { postService }
   from "../../services/postService";
 
 export default function FeedPage() {
 
-  const dispatch = useDispatch();
+  const dispatch =
+    useDispatch();
 
-  const { user } = useSelector(
-    (state) => state.auth
+  const { user } =
+    useSelector(
+      (state) =>
+        state.auth
+    );
+
+  const {
+    posts,
+    loading,
+  } = useSelector(
+    (state) =>
+      state.feed
   );
 
-  const { posts, loading } = useSelector(
-    (state) => state.feed
-  );
-
-  const [openModal, setOpenModal] =
-    useState(false);
+  const [
+    openModal,
+    setOpenModal,
+  ] = useState(false);
 
   /* FETCH POSTS */
   useEffect(() => {
@@ -109,47 +129,56 @@ export default function FeedPage() {
             Array.from({
               length: 3,
             }).map((_, i) => (
-              <PostSkeleton key={i} />
+
+              <PostSkeleton
+                key={i}
+              />
+
             ))
 
           ) : posts.length > 0 ? (
 
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence
+              mode="popLayout"
+            >
 
-              {posts.map((post, index) => (
+              {posts.map(
+                (
+                  post,
+                  index
+                ) => (
 
-                <motion.div
-                  key={post.id}
-                  layout
-                  initial={{
-                    opacity: 0,
-                    y: 40,
-                    scale: 0.98,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.9,
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 120,
-                    damping: 18,
-                    delay: index * 0.03,
-                  }}
-                >
+                  <motion.div
+                    key={post.id}
+                    layout
+                    initial={{
+                      opacity: 0,
+                      y: 50,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -40,
+                    }}
+                    transition={{
+                      duration: 0.35,
+                      delay:
+                        index *
+                        0.04,
+                    }}
+                  >
 
-                  <PostCard
-                    post={post}
-                  />
+                    <PostCard
+                      post={post}
+                    />
 
-                </motion.div>
+                  </motion.div>
 
-              ))}
+                )
+              )}
 
             </AnimatePresence>
 

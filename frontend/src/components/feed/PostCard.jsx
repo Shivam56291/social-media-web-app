@@ -8,7 +8,14 @@ import {
   DotsThree,
   Trash,
   PencilSimple,
+  CaretLeft,
+  CaretRight,
 } from "@phosphor-icons/react";
+
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
 
 import {
   formatDistanceToNow,
@@ -56,16 +63,24 @@ export default function PostCard({
     setOpenEdit,
   ] = useState(false);
 
-  const menuRef = useRef(null);
+  const [
+    activeImage,
+    setActiveImage,
+  ] = useState(0);
+
+  const menuRef =
+    useRef(null);
 
   const user =
     post.author_detail;
+
+  const images =
+    post.image_urls || [];
 
   /* DELETE */
   const handleDelete =
     async () => {
 
-      // instant remove
       dispatch(
         removePost(post.id)
       );
@@ -80,13 +95,13 @@ export default function PostCard({
 
         console.log(error);
 
-        // rollback
         dispatch(
           restorePost(post)
         );
       }
     };
 
+  /* OUTSIDE CLICK */
   useEffect(() => {
 
     const handleOutside = (
@@ -119,9 +134,65 @@ export default function PostCard({
 
   }, []);
 
+  /* FIX INDEX */
+  useEffect(() => {
+
+    if (
+      activeImage >
+      images.length - 1
+    ) {
+
+      setActiveImage(0);
+    }
+
+  }, [
+    activeImage,
+    images.length,
+  ]);
+
+  const nextImage = () => {
+
+    if (
+      activeImage <
+      images.length - 1
+    ) {
+
+      setActiveImage(
+        (prev) => prev + 1
+      );
+    }
+  };
+
+  const prevImage = () => {
+
+    if (activeImage > 0) {
+
+      setActiveImage(
+        (prev) => prev - 1
+      );
+    }
+  };
+
   return (
     <>
-      <article
+      <motion.article
+        layout
+        initial={{
+          opacity: 0,
+          y: 40,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        exit={{
+          opacity: 0,
+          y: -30,
+        }}
+        transition={{
+          duration: 0.35,
+          ease: "easeOut",
+        }}
         className="
           overflow-hidden
           rounded-3xl
@@ -130,7 +201,6 @@ export default function PostCard({
           backdrop-blur-xl
           transition-all
           duration-300
-          hover:-translate-y-1
           hover:border-cyan-400/20
           hover:shadow-[0_0_40px_rgba(34,211,238,0.08)]
         "
@@ -208,7 +278,9 @@ export default function PostCard({
                 "
               >
                 {formatDistanceToNow(
-                  new Date(post.created_at),
+                  new Date(
+                    post.created_at
+                  ),
                   {
                     addSuffix: true,
                   }
@@ -248,126 +320,111 @@ export default function PostCard({
 
             </button>
 
-            {/* DROPDOWN */}
-            {showMenu &&
-              post.author ===
-              currentUser?.id && (
+            <AnimatePresence>
 
-                <div
-                  className="
-                    absolute right-0 top-12
-                    z-30
-                    w-52
-                    overflow-hidden
-                    rounded-2xl
-                    border border-white/10
-                    bg-[#0f172a]/95
-                    shadow-2xl
-                    backdrop-blur-xl
-                    animate-in
-                    fade-in
-                    slide-in-from-top-2
-                    zoom-in-95
-                    duration-200
-                  "
-                >
+              {showMenu &&
+                post.author ===
+                currentUser?.id && (
 
-                  {/* EDIT */}
-                  <button
-                    onClick={() => {
-
-                      setOpenEdit(true);
-
-                      setShowMenu(false);
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      y: -8,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -8,
+                    }}
+                    transition={{
+                      duration: 0.18,
                     }}
                     className="
-                    flex w-full
-                    items-center gap-3
-                    px-4 py-3
-                    text-sm
-                    text-slate-200
-                    transition-all
-                    hover:bg-cyan-500/10
-                  "
+                      absolute right-0 top-12
+                      z-30
+                      w-52
+                      overflow-hidden
+                      rounded-2xl
+                      border border-white/10
+                      bg-[#0f172a]/95
+                      shadow-2xl
+                      backdrop-blur-xl
+                    "
                   >
 
-                    <PencilSimple
-                      size={18}
-                    />
+                    <button
+                      onClick={() => {
 
-                    Edit Post
+                        setOpenEdit(
+                          true
+                        );
 
-                  </button>
+                        setShowMenu(
+                          false
+                        );
+                      }}
+                      className="
+                        flex w-full
+                        items-center gap-3
+                        px-4 py-3
+                        text-sm
+                        text-slate-200
+                        transition-all
+                        hover:bg-cyan-500/10
+                      "
+                    >
 
-                  {/* DELETE */}
-                  <button
-                    onClick={
-                      handleDelete
-                    }
-                    className="
-                    flex w-full
-                    items-center gap-3
-                    px-4 py-3
-                    text-sm
-                    text-red-400
-                    transition-all
-                    hover:bg-red-500/10
-                  "
-                  >
+                      <PencilSimple
+                        size={18}
+                      />
 
-                    <Trash
-                      size={18}
-                    />
+                      Edit Post
 
-                    Delete Post
+                    </button>
 
-                  </button>
+                    <button
+                      onClick={
+                        handleDelete
+                      }
+                      className="
+                        flex w-full
+                        items-center gap-3
+                        px-4 py-3
+                        text-sm
+                        text-red-400
+                        transition-all
+                        hover:bg-red-500/10
+                      "
+                    >
 
-                </div>
+                      <Trash
+                        size={18}
+                      />
 
-              )}
+                      Delete Post
+
+                    </button>
+
+                  </motion.div>
+
+                )}
+
+            </AnimatePresence>
 
           </div>
 
         </div>
 
-        {/* IMAGE */}
-        {/* IMAGE */}
-        {post.image_urls?.length > 0 && (
-
-          <div className="overflow-hidden">
-
-            <img
-              src={post.image_urls[0]}
-              loading="lazy"
-              alt="post"
-              className="
-        max-h-[520px]
-        min-h-[300px]
-        w-full
-        object-cover
-        transition-all
-        duration-700
-        hover:scale-[1.03]
-              "
-            />
-
-          </div>
-
-        )}
-
         {/* CONTENT */}
-        <div className="p-5">
+        {post.content && (
 
-          <PostActions
-            post={post}
-          />
-
-          {post.content && (
+          <div className="px-5 pb-4">
 
             <p
               className="
-                mt-4
                 whitespace-pre-wrap
                 leading-7
                 text-slate-300
@@ -376,11 +433,234 @@ export default function PostCard({
               {post.content}
             </p>
 
-          )}
+          </div>
+
+        )}
+
+        {/* MULTI IMAGE */}
+        {images.length > 0 && (
+
+          <div className="px-3 pb-3">
+
+            {/* MAIN IMAGE */}
+            <div
+              className="
+                relative
+                overflow-hidden
+                rounded-[28px]
+                bg-black
+              "
+            >
+
+              <div
+                className="
+                  relative
+                  h-[420px]
+                  w-full
+                  md:h-[520px]
+                "
+              >
+
+                <AnimatePresence
+                  mode="wait"
+                >
+
+                  <motion.img
+                    key={
+                      images[
+                        activeImage
+                      ]
+                    }
+                    src={
+                      images[
+                        activeImage
+                      ]
+                    }
+                    alt="post"
+                    loading="lazy"
+                    initial={{
+                      opacity: 0,
+                      x: 40,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      x: -40,
+                    }}
+                    transition={{
+                      duration: 0.25,
+                    }}
+                    className="
+                      absolute inset-0
+                      h-full
+                      w-full
+                      object-cover
+                    "
+                  />
+
+                </AnimatePresence>
+
+                {/* COUNT */}
+                {images.length > 1 && (
+
+                  <div
+                    className="
+                      absolute right-4 top-4
+                      rounded-full
+                      bg-black/50
+                      px-3 py-1
+                      text-xs
+                      backdrop-blur-xl
+                    "
+                  >
+                    {activeImage + 1}
+                    /
+                    {
+                      images.length
+                    }
+                  </div>
+
+                )}
+
+                {/* LEFT */}
+                {activeImage > 0 && (
+
+                  <button
+                    onClick={
+                      prevImage
+                    }
+                    className="
+                      absolute left-4 top-1/2
+                      flex h-11 w-11
+                      -translate-y-1/2
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-black/40
+                      backdrop-blur-xl
+                    "
+                  >
+
+                    <CaretLeft
+                      size={22}
+                    />
+
+                  </button>
+
+                )}
+
+                {/* RIGHT */}
+                {activeImage <
+                  images.length -
+                    1 && (
+
+                  <button
+                    onClick={
+                      nextImage
+                    }
+                    className="
+                      absolute right-4 top-1/2
+                      flex h-11 w-11
+                      -translate-y-1/2
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-black/40
+                      backdrop-blur-xl
+                    "
+                  >
+
+                    <CaretRight
+                      size={22}
+                    />
+
+                  </button>
+
+                )}
+
+              </div>
+
+            </div>
+
+            {/* THUMBNAILS */}
+            {images.length > 1 && (
+
+              <div
+                className="
+                  mt-3 flex
+                  gap-2
+                  overflow-x-auto
+                  pb-1
+                "
+              >
+
+                {images.map(
+                  (
+                    image,
+                    index
+                  ) => (
+
+                    <button
+                      key={image}
+                      onClick={() =>
+                        setActiveImage(
+                          index
+                        )
+                      }
+                      className={`
+                        relative
+                        h-16
+                        w-16
+                        shrink-0
+                        overflow-hidden
+                        rounded-2xl
+                        border
+                        transition-all
+                        ${
+                          activeImage ===
+                          index
+                            ? "border-cyan-400"
+                            : "border-white/10"
+                        }
+                      `}
+                    >
+
+                      <img
+                        src={image}
+                        alt=""
+                        className="
+                          h-full
+                          w-full
+                          object-cover
+                        "
+                      />
+
+                    </button>
+
+                  )
+                )}
+
+              </div>
+
+            )}
+
+          </div>
+
+        )}
+
+        {/* ACTIONS */}
+        <div className="px-5 pb-5">
+
+          <PostActions
+            post={post}
+          />
 
         </div>
 
-      </article>
+      </motion.article>
 
       {/* EDIT MODAL */}
       <EditPostModal
