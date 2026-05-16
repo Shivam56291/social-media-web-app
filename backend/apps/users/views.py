@@ -1,35 +1,67 @@
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import update_session_auth_hash
-from apps.users.serializers import ChangePasswordSerializer
-from apps.users.serializers import UpdateEmailSerializer
+
+from django.contrib.auth import (
+    update_session_auth_hash,
+    get_user_model
+)
+
+from django.contrib.auth.models import (
+    update_last_login
+)
+
 from rest_framework.views import APIView
-from apps.users.serializers import UpdateProfileSerializer
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import update_last_login
+
+from rest_framework import (
+    generics,
+    status
+)
+
+from rest_framework.response import (
+    Response
+)
+
+from rest_framework.permissions import (
+    IsAuthenticated
+)
+
+from apps.posts.models import Post
+
+from apps.posts.serializers import (
+    PostSerializer
+)
 
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
-    UserSerializer
+    UserSerializer,
+    ChangePasswordSerializer,
+    UpdateEmailSerializer,
+    UpdateProfileSerializer
 )
-
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
-class RegisterView(generics.CreateAPIView):
+# REGISTER
+class RegisterView(
+    generics.CreateAPIView
+):
 
     queryset = User.objects.all()
 
-    serializer_class = RegisterSerializer
+    serializer_class = (
+        RegisterSerializer
+    )
 
 
-class LoginView(generics.GenericAPIView):
+# LOGIN
+class LoginView(
+    generics.GenericAPIView
+):
 
-    serializer_class = LoginSerializer
+    serializer_class = (
+        LoginSerializer
+    )
 
     def post(self, request):
 
@@ -53,15 +85,26 @@ class LoginView(generics.GenericAPIView):
             status=status.HTTP_200_OK
         )
 
-class CurrentUserView(generics.RetrieveAPIView):
 
-    serializer_class = UserSerializer
+# CURRENT USER
+class CurrentUserView(
+    generics.RetrieveAPIView
+):
 
-    permission_classes = [IsAuthenticated]
+    serializer_class = (
+        UserSerializer
+    )
+
+    permission_classes = [
+        IsAuthenticated
+    ]
 
     def get_object(self):
+
         return self.request.user
 
+
+# UPDATE PROFILE
 class UpdateProfileView(
     generics.UpdateAPIView
 ):
@@ -78,8 +121,11 @@ class UpdateProfileView(
 
         return self.request.user
 
+
 # UPDATE EMAIL
-class UpdateEmailView(APIView):
+class UpdateEmailView(
+    APIView
+):
 
     permission_classes = [
         IsAuthenticated
@@ -87,8 +133,10 @@ class UpdateEmailView(APIView):
 
     def patch(self, request):
 
-        serializer = UpdateEmailSerializer(
-            data=request.data
+        serializer = (
+            UpdateEmailSerializer(
+                data=request.data
+            )
         )
 
         serializer.is_valid(
@@ -111,7 +159,9 @@ class UpdateEmailView(APIView):
 
 
 # CHANGE PASSWORD
-class ChangePasswordView(APIView):
+class ChangePasswordView(
+    APIView
+):
 
     permission_classes = [
         IsAuthenticated
@@ -119,8 +169,10 @@ class ChangePasswordView(APIView):
 
     def patch(self, request):
 
-        serializer = ChangePasswordSerializer(
-            data=request.data
+        serializer = (
+            ChangePasswordSerializer(
+                data=request.data
+            )
         )
 
         serializer.is_valid(
@@ -151,7 +203,10 @@ class ChangePasswordView(APIView):
 
         user.save()
 
-        update_session_auth_hash(request, user)
+        update_session_auth_hash(
+            request,
+            user
+        )
 
         return Response(
             {
@@ -162,7 +217,9 @@ class ChangePasswordView(APIView):
 
 
 # UPDATE PRIVACY
-class UpdatePrivacyView(APIView):
+class UpdatePrivacyView(
+    APIView
+):
 
     permission_classes = [
         IsAuthenticated
@@ -175,7 +232,9 @@ class UpdatePrivacyView(APIView):
             False
         )
 
-        request.user.is_private = is_private
+        request.user.is_private = (
+            is_private
+        )
 
         request.user.save()
 
@@ -228,7 +287,9 @@ class LogoutAllDevicesView(
                 "refresh"
             )
 
-            token = RefreshToken(refresh)
+            token = RefreshToken(
+                refresh
+            )
 
             token.blacklist()
 
@@ -248,30 +309,35 @@ class LogoutAllDevicesView(
                 },
                 status=400
             )
-        
-#To get the list of all users
+
+
 # ALL USERS
 class AllUsersView(
     generics.ListAPIView
 ):
 
-    serializer_class = UserSerializer
+    serializer_class = (
+        UserSerializer
+    )
 
     permission_classes = [
         IsAuthenticated
     ]
 
-    queryset = User.objects.all().order_by(
-        "-created_at"
+    queryset = (
+        User.objects.all()
+        .order_by("-created_at")
     )
 
-# To get a user profile by its id
 
+# USER PROFILE BY ID
 class UserProfileView(
     generics.RetrieveAPIView
 ):
 
-    serializer_class = UserSerializer
+    serializer_class = (
+        UserSerializer
+    )
 
     permission_classes = [
         IsAuthenticated
@@ -279,4 +345,34 @@ class UserProfileView(
 
     queryset = User.objects.all()
 
-    lookup_field = "id"            
+    lookup_field = "id"
+
+
+# MY POSTS
+class MyPostsView(
+    generics.ListAPIView
+):
+
+    serializer_class = (
+        PostSerializer
+    )
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get_queryset(self):
+
+        return (
+            Post.objects.filter(
+                author=self.request.user
+            )
+            .select_related(
+                "author"
+            )
+            .prefetch_related(
+                "likes",
+                "comments"
+            )
+            .order_by("-created_at")
+        )

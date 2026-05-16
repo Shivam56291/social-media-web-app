@@ -1,52 +1,65 @@
+from django.urls import path
+
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
 from apps.users.views import (
+    RegisterView,
+    LoginView,
+    CurrentUserView,
+
     UpdateProfileView,
     UpdateEmailView,
     ChangePasswordView,
     UpdatePrivacyView,
     DeactivateAccountView,
     LogoutAllDevicesView,
+
     AllUsersView,
     UserProfileView,
-)
-from django.urls import path
 
-from .views import (
-    RegisterView,
-    LoginView,
-    CurrentUserView
+    MyPostsView,
 )
 
 urlpatterns = [
 
+    # AUTH
     path(
-        'register/',
+        "register/",
         RegisterView.as_view()
     ),
 
     path(
-        'login/',
+        "login/",
         LoginView.as_view()
     ),
 
     path(
-        'token/refresh/',
+        "token/refresh/",
         TokenRefreshView.as_view(),
-        name='token_refresh'
+        name="token_refresh"
+    ),
+
+
+    # CURRENT USER
+    path(
+        "me/",
+        CurrentUserView.as_view()
     ),
 
     path(
-        'me/',
-        CurrentUserView.as_view()
+        "me/posts/",
+        MyPostsView.as_view()
     ),
+
     path(
         "me/update/",
         UpdateProfileView.as_view()
     ),
 
+
+    # ACCOUNT SETTINGS
     path(
         "update-email/",
         UpdateEmailView.as_view(),
@@ -71,7 +84,10 @@ urlpatterns = [
         "logout-all/",
         LogoutAllDevicesView.as_view(),
     ),
-        path(
+
+
+    # USERS
+    path(
         "all-users/",
         AllUsersView.as_view()
     ),

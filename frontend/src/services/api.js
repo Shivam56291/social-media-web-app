@@ -1,17 +1,23 @@
+// src/services/api.js
+
 import axios from "axios";
 
 import {
   authStorage,
 } from "./authStorage";
 
+
 const api = axios.create({
+
   baseURL:
     import.meta.env
       .VITE_API_BASE_URL,
 });
 
+
 /* REQUEST INTERCEPTOR */
 api.interceptors.request.use(
+
   (config) => {
 
     const token =
@@ -24,8 +30,16 @@ api.interceptors.request.use(
     }
 
     return config;
+  },
+
+  (error) => {
+
+    return Promise.reject(
+      error
+    );
   }
 );
+
 
 /* RESPONSE INTERCEPTOR */
 api.interceptors.response.use(
@@ -41,8 +55,11 @@ api.interceptors.response.use(
 
     /* TOKEN EXPIRED */
     if (
+
       error.response?.status === 401 &&
+
       !originalRequest._retry
+
     ) {
 
       originalRequest._retry =
@@ -58,42 +75,53 @@ api.interceptors.response.use(
 
           authStorage.clear();
 
-          window.location.href = "/";
+          window.location.href =
+            "/";
 
           return Promise.reject(
             error
           );
         }
 
-        /* GET NEW ACCESS TOKEN */
+        /* GET NEW TOKENS */
         const response =
           await axios.post(
+
             `${import.meta.env.VITE_API_BASE_URL}/users/token/refresh/`,
+
             {
               refresh,
             }
           );
 
         const {
-  access,
-  refresh: newRefresh,
-} = response.data;
 
-/* SAVE NEW ACCESS */
-authStorage.setAccessToken(
-  access
-);
+          access,
 
-/* SAVE NEW REFRESH */
-if (newRefresh) {
-  authStorage.setRefreshToken(
-    newRefresh
-  );
-}
+          refresh: newRefresh,
 
-        /* UPDATE HEADER */
+        } = response.data;
+
+
+        /* SAVE NEW ACCESS TOKEN */
+        authStorage.setAccessToken(
+          access
+        );
+
+
+        /* SAVE NEW REFRESH TOKEN */
+        if (newRefresh) {
+
+          authStorage.setRefreshToken(
+            newRefresh
+          );
+        }
+
+
+        /* UPDATE FAILED REQUEST HEADER */
         originalRequest.headers.Authorization =
-          `Bearer ${newAccess}`;
+          `Bearer ${access}`;
+
 
         /* RETRY ORIGINAL REQUEST */
         return api(
@@ -103,7 +131,7 @@ if (newRefresh) {
       } catch (refreshError) {
 
         console.log(
-          "Refresh failed",
+          "Refresh token failed:",
           refreshError
         );
 
@@ -124,5 +152,6 @@ if (newRefresh) {
     );
   }
 );
+
 
 export default api;
