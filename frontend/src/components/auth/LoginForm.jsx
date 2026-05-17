@@ -51,33 +51,27 @@ export default function LoginForm({
   });
 
   const onSubmit = async (data) => {
+
     try {
+
       setLoading(true);
 
       dispatch(loginStart());
 
       setApiError("");
 
-      // LOGIN
-      const loginResponse = await authService.login({
-        login: data.login,
-        password: data.password,
-      });
+      const loginResponse =
+        await authService.login({
+          login: data.login,
+          password: data.password,
+        });
 
-      // store access token only
-      authStorage.setAccess(loginResponse.access);
-
-      // fetch user
-      const user = await authService.getCurrentUser();
-
-      // store user
-      authStorage.setUser(user);
-
-      // redux
-      dispatch(loginSuccess({
-        access: loginResponse.access,
-        user,
-      }));
+      dispatch(
+        loginSuccess({
+          access: loginResponse.access,
+          user: loginResponse.user,
+        })
+      );
 
       navigate("/dashboard");
 

@@ -35,12 +35,6 @@ urlpatterns = [
         "login/",
         LoginView.as_view()
     ),
-
-    path(
-        "token/refresh/",
-        TokenRefreshView.as_view(),
-        name="token_refresh"
-    ),
     path(
     "token/refresh/",
     CookieTokenRefreshView.as_view(),

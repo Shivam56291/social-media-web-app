@@ -19,21 +19,6 @@ export const authService = {
   return response.data;
 },
 
-refreshToken: async (
-  refresh
-) => {
-
-  const response =
-    await api.post(
-      "/users/token/refresh/",
-      {
-        refresh,
-      }
-    );
-
-  return response.data;
-},
-
   getCurrentUser: async () => {
     const response = await api.get(
       "/users/me/"
@@ -104,19 +89,11 @@ deactivateAccount: async () => {
 /* LOGOUT ALL DEVICES */
 logoutAllDevices: async () => {
 
-    const refresh =
-      localStorage.getItem(
-        "refresh"
-      );
+  const response =
+    await api.post(
+      "/users/logout-all/"
+    );
 
-    const response =
-      await api.post(
-        "/users/logout-all/",
-        {
-          refresh,
-        }
-      );
-
-    return response.data;
-  }
+  return response.data;
+}
 };

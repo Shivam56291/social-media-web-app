@@ -1,5 +1,3 @@
-// src/services/api.js
-
 import axios from "axios";
 
 import {
@@ -12,6 +10,8 @@ const api = axios.create({
   baseURL:
     import.meta.env
       .VITE_API_BASE_URL,
+
+  withCredentials: true,
 });
 
 
@@ -43,37 +43,53 @@ api.interceptors.request.use(
 
 /* RESPONSE INTERCEPTOR */
 api.interceptors.response.use(
-  res => res,
+
+  (response) => response,
 
   async (error) => {
-    const original = error.config;
 
+    const originalRequest =
+      error.config;
+
+    // avoid infinite retry loop
     if (
       error.response?.status === 401 &&
-      !original._retry
+      !originalRequest._retry &&
+      originalRequest.url !== "/users/token/refresh/"
     ) {
-      original._retry = true;
+
+      originalRequest._retry = true;
 
       try {
-        // 🔥 COOKIE BASED REFRESH CALL
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/users/token/refresh/`,
-          {},
-          { withCredentials: true }
+
+        const response =
+          await api.post(
+            "/users/token/refresh/"
+          );
+
+        const newAccess =
+          response.data.access;
+
+        authStorage.setAccess(
+          newAccess
         );
 
-        const newAccess = res.data.access;
+        originalRequest.headers.Authorization =
+          `Bearer ${newAccess}`;
 
-        authStorage.setAccess(newAccess);
+        return api(
+          originalRequest
+        );
 
-        original.headers.Authorization = `Bearer ${newAccess}`;
+      } catch (refreshError) {
 
-        return api(original);
-
-      } catch (err) {
         authStorage.clear();
+
         window.location.href = "/";
-        return Promise.reject(err);
+
+        return Promise.reject(
+          refreshError
+        );
       }
     }
 

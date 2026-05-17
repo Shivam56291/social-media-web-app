@@ -7,32 +7,68 @@ import {
   logout,
 } from "../features/auth/authSlice";
 
-import { authStorage } from "../services/authStorage";
+import api from "../services/api";
 
-import { authService } from "../services/authService";
+import {
+  authStorage,
+} from "../services/authStorage";
 
-export default function useAuthInitialize() {
-  const dispatch = useDispatch();
+import {
+  authService,
+} from "../services/authService";
 
-useEffect(() => {
-  const init = async () => {
-    try {
-      const access = authStorage.getAccess();
 
-      if (!access) return;
+export default function
+useAuthInitialize() {
 
-      const user = await authService.getCurrentUser();
+  const dispatch =
+    useDispatch();
 
-      dispatch(loginSuccess({
-        access,
-        user,
-      }));
+  useEffect(() => {
 
-    } catch (err) {
-      authStorage.clear();
-    }
-  };
+    const init = async () => {
 
-  init();
-}, [dispatch]);
+      try {
+
+        let access =
+          authStorage.getAccess();
+
+        // try refresh if no access
+        if (!access) {
+
+          const response =
+            await api.post(
+              "/users/token/refresh/"
+            );
+
+          access =
+            response.data.access;
+
+          authStorage.setAccess(
+            access
+          );
+        }
+
+        const user =
+          await authService
+            .getCurrentUser();
+
+        dispatch(
+          loginSuccess({
+            access,
+            user,
+          })
+        );
+
+      } catch (err) {
+
+        authStorage.clear();
+
+        dispatch(logout());
+      }
+    };
+
+    init();
+
+  }, [dispatch]);
 }

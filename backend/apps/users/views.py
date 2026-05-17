@@ -285,34 +285,50 @@ class LogoutAllDevicesView(
 
         try:
 
-            refresh = request.data.get(
-                "refresh"
+            refresh_token = (
+                request.COOKIES.get(
+                    "refresh_token"
+                )
             )
 
+            if not refresh_token:
+
+                return Response(
+                    {
+                        "detail":
+                        "No refresh token"
+                    },
+                    status=400
+                )
+
             token = RefreshToken(
-                refresh
+                refresh_token
             )
 
             token.blacklist()
 
-            return Response(
-                {
-                    "detail":
-                    "Logged out everywhere"
-                }
+            response = Response({
+                "detail":
+                "Logged out everywhere"
+            })
+
+            response.delete_cookie(
+                "refresh_token"
             )
 
-        except Exception:
+            return response
+
+        except Exception as e:
 
             return Response(
                 {
                     "detail":
-                    "Invalid token"
+                    "Invalid token",
+                    "error": str(e)
                 },
                 status=400
             )
-
-
+            
 # ALL USERS
 class AllUsersView(
     generics.ListAPIView
@@ -380,24 +396,79 @@ class MyPostsView(
         )
 
 class CookieTokenRefreshView(APIView):
+
     def post(self, request):
+
         try:
-            refresh_token = request.COOKIES.get("refresh_token")
+
+            refresh_token = request.COOKIES.get(
+                "refresh_token"
+            )
 
             if not refresh_token:
+
                 return Response(
-                    {"detail": "No refresh token"},
+                    {
+                        "detail":
+                        "No refresh token"
+                    },
                     status=status.HTTP_401_UNAUTHORIZED
                 )
 
-            refresh = RefreshToken(refresh_token)
+            old_refresh = RefreshToken(
+                refresh_token
+            )
 
-            return Response({
-                "access": str(refresh.access_token),
+            # get user id
+            user_id = old_refresh.payload.get(
+                "user_id"
+            )
+
+            # fetch actual user object
+            user = User.objects.get(
+                id=user_id
+            )
+
+            # blacklist old refresh token
+            try:
+                old_refresh.blacklist()
+            except:
+                pass
+
+            # create new refresh token
+            new_refresh = (
+                RefreshToken.for_user(user)
+            )
+
+            response = Response({
+                "access": str(
+                    new_refresh.access_token
+                )
             })
 
-        except Exception:
+            response.set_cookie(
+                key="refresh_token",
+
+                value=str(new_refresh),
+
+                httponly=True,
+
+                secure=False,
+
+                samesite="Lax",
+
+                max_age=7 * 24 * 60 * 60,
+            )
+
+            return response
+
+        except Exception as e:
+
             return Response(
-                {"detail": "Invalid refresh"},
+                {
+                    "detail":
+                    "Invalid refresh",
+                    "error": str(e)
+                },
                 status=status.HTTP_401_UNAUTHORIZED
             )
