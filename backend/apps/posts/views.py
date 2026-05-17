@@ -85,3 +85,30 @@ class CommentListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         post = get_object_or_404(Post, id=self.kwargs["post_id"])
         serializer.save(author=self.request.user, post=post)
+
+
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Comment.objects.all()
+    lookup_field = "id"
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Security Check: Only the author can edit their comment
+        if instance.author != request.user:
+            return Response(
+                {"detail": "You do not have permission to edit this comment."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Security Check: Only the comment author OR the post owner can delete it
+        if instance.author != request.user and instance.post.author != request.user:
+            return Response(
+                {"detail": "You do not have permission to delete this comment."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)

@@ -13,24 +13,33 @@ This document provides a comprehensive overview of the active API endpoints avai
 **Base URL:** `/api/users/`[cite: 1]
 
 > [!IMPORTANT]
-> To allow the frontend to communicate with these endpoints, ensure your **Backend Configuration (Django)** includes the necessary CORS headers[cite: 1].
+> To allow the frontend to communicate with these endpoints, ensure your **Backend Configuration (Django)** includes the necessary CORS headers.
+
+## 🔍 User Discovery
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `all-users/` | **GET** | Fetch a directory list of all registered users on the platform. |
+| `get-user/<int:id>/` | **GET** | Retrieve public profile details for a specific user by their ID. |
+
 
 ### 🛠️ Account Actions
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `register/` | **POST** | Create a new user account[cite: 1]. |
-| `login/` | **POST** | Authenticate user and return access tokens[cite: 1]. |
-| `logout-all/` | **POST** | Invalidate all active sessions across devices[cite: 1]. |
+| `register/` | **POST** | Create a new user account. |
+| `login/` | **POST** | Authenticate user and return access tokens. |
+| `logout-all/` | **POST** | Invalidate all active sessions across devices. |
+| `token/refresh/` | **POST** | Refresh the JWT access token using a refresh token (Note: Your Django file has duplicate routes here, with CookieTokenRefreshView taking precedence).. |
 
 ### 👤 Profile Management
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `me/` | **GET** | Fetch details of the currently authenticated user[cite: 1]. |
-| `me/update/` | **PUT/PATCH** | Update the profile information for the current user[cite: 1]. |
-| `update-email/` | **POST** | Change the email address associated with the account[cite: 1]. |
-| `change-password/` | **POST** | Update the account password[cite: 1]. |
-| `privacy/` | **PUT/PATCH** | Update user privacy settings and visibility[cite: 1]. |
-| `deactivate/` | **POST** | Deactivate the user's account[cite: 1]. |
+| `me/` | **GET** | Fetch details of the currently authenticated user. |
+| `me/update/` | **PUT/PATCH** | Update the profile information for the current user. |
+| `me/posts/` | **GET** | Retrieve all posts authored by the currently authenticated user.. |
+| `update-email/` | **POST** | Change the email address associated with the account. |
+| `change-password/` | **POST** | Update the account password. |
+| `privacy/` | **PUT/PATCH** | Update user privacy settings and visibility. |
+| `deactivate/` | **POST** | Deactivate the user's account. |
 
 ---
 
@@ -48,8 +57,10 @@ These endpoints are handled directly in the root `urlpatterns`[cite: 1].
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `/` | **GET** | Main application landing page[cite: 1]. |
-| `admin/` | **N/A** | Django Administration interface[cite: 1]. |
+| `/` | **GET** | Main application landing page. |
+| `admin/` | **N/A** | Django Administration interface. |
+
+---
 
 ## 📝 Posts & Engagement
 **Base URL:** `/api/posts/`
@@ -70,3 +81,12 @@ These endpoints are handled directly in the root `urlpatterns`[cite: 1].
 | `<int:id>/like/` | **POST** | Dynamic toggle view. Hits once to add a like; hits again to unlike. Returns updated count and current status. |
 | `<int:post_id>/comments/` | **GET** | Fetch all comments associated with a specific post, ordered chronologically. |
 | `<int:post_id>/comments/` | **POST** | Publish a text comment on a specific post. |
+
+### 🔹 Comment Management
+**Base URL:** `/api/posts/comments/`
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `<int:id>/` | **PATCH** | Partially update the text content of an existing comment (Author only). |
+| `<int:id>/` | **DELETE** | Permanently remove a comment from the post (Author or Post Owner only). |
+
+---
