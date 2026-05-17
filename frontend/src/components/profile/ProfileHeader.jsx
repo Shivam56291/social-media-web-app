@@ -1,12 +1,8 @@
 import {
   PencilSimple,
-  CalendarBlank,
-  Sparkle,
 } from "@phosphor-icons/react";
 
-import {
-  motion,
-} from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function ProfileHeader({
   user,
@@ -21,280 +17,202 @@ export default function ProfileHeader({
     .filter(Boolean)
     .join(" ");
 
-  const joinedDate =
-    user?.created_at
-      ? new Date(
-          user.created_at
-        ).toLocaleDateString(
-          "en-US",
-          {
-            month: "long",
-            year: "numeric",
-          }
-        )
-      : "May 2026";
-
   return (
-    <motion.div
+    <motion.section
       initial={{
         opacity: 0,
-        y: 40,
+        y: 12,
       }}
       animate={{
         opacity: 1,
         y: 0,
       }}
       transition={{
-        duration: 0.45,
+        duration: 0.25,
       }}
       className="
-        relative overflow-hidden
-        rounded-[40px]
+        rounded-2xl
         border border-white/10
-        bg-white/[0.04]
-        p-8
-        backdrop-blur-2xl
+        bg-[#0F172A]
+        px-5 py-7
+        md:px-8 md:py-8
       "
     >
 
-      {/* GLOW */}
       <div
         className="
-          absolute inset-0
-          bg-gradient-to-br
-          from-cyan-500/10
-          via-indigo-500/5
-          to-pink-500/10
+          flex flex-col
+          gap-7
+          md:flex-row
+          md:items-start
         "
-      />
+      >
 
-      <div className="relative z-10">
-
+        {/* PROFILE IMAGE */}
         <div
           className="
-            flex flex-col
-            gap-10
-            lg:flex-row
+            flex justify-center
+            md:block
           "
         >
 
-          {/* AVATAR */}
-          <motion.div
-            whileHover={{
-              scale: 1.03,
-            }}
+          <div
             className="
-              relative
-              mx-auto
-              h-44 w-44
-              lg:mx-0
+              h-28 w-28
+              overflow-hidden
+              rounded-full
+              ring-2 ring-white/10
+              bg-[#1E293B]
             "
           >
 
-            <div
-              className="
-                absolute inset-0
-                rounded-full
-                bg-gradient-to-br
-                from-cyan-500
-                via-indigo-500
-                to-pink-500
-                blur-2xl
-                opacity-40
-              "
-            />
+            {user?.avatar_url ? (
 
-            <div
-              className="
-                relative flex
-                h-full w-full
-                items-center
-                justify-center
-                overflow-hidden
-                rounded-full
-                border border-white/20
-                bg-[#0B1120]
-              "
-            >
+              <img
+                src={user.avatar_url}
+                alt={user?.username}
+                className="
+                  h-full w-full
+                  object-cover
+                "
+              />
 
-              {user?.avatar_url ? (
+            ) : (
 
-                <img
-                  src={user.avatar_url}
-                  alt={user.username}
-                  className="
-                    h-full w-full
-                    object-cover
-                  "
-                />
-
-              ) : (
-
-                <span
-                  className="
-                    text-6xl
-                    font-black
-                    text-white
-                  "
-                >
-                  {user?.username
-                    ?.charAt(0)
-                    ?.toUpperCase()}
-                </span>
-
-              )}
-
-            </div>
-
-          </motion.div>
-
-          {/* INFO */}
-          <div className="flex-1">
-
-            <div
-              className="
-                flex flex-col
-                gap-6
-                lg:flex-row
-                lg:items-start
-                lg:justify-between
-              "
-            >
-
-              <div>
-
-                <div
-                  className="
-                    flex items-center
-                    gap-3
-                  "
-                >
-
-                  <h1
-                    className="
-                      text-4xl
-                      font-black
-                      tracking-tight
-                      text-white
-                    "
-                  >
-                    {fullName ||
-                      user?.username}
-                  </h1>
-
-                  <Sparkle
-                    size={28}
-                    weight="fill"
-                    className="
-                      text-cyan-400
-                    "
-                  />
-
-                </div>
-
-                <p
-                  className="
-                    mt-2
-                    text-lg
-                    text-slate-400
-                  "
-                >
-                  @{user?.username}
-                </p>
-
-                <p
-                  className="
-                    mt-4
-                    max-w-2xl
-                    leading-8
-                    text-slate-300
-                  "
-                >
-                  {user?.bio ||
-                    "Crafting beautiful digital experiences with React, Django & scalable systems ✨"}
-                </p>
-
-                <div
-                  className="
-                    mt-6 flex
-                    flex-wrap gap-5
-                    text-sm
-                    text-slate-400
-                  "
-                >
-
-                  <div
-                    className="
-                      flex items-center
-                      gap-2
-                    "
-                  >
-
-                    <CalendarBlank
-                      size={18}
-                    />
-
-                    Joined {joinedDate}
-
-                  </div>
-
-                </div>
-
+              <div
+                className="
+                  flex h-full
+                  w-full items-center
+                  justify-center
+                  text-3xl
+                  font-bold
+                  text-white
+                "
+              >
+                {user?.username
+                  ?.charAt(0)
+                  ?.toUpperCase()}
               </div>
 
-              {/* BUTTON */}
-              <button
-                onClick={onEdit}
+            )}
+
+          </div>
+
+        </div>
+
+        {/* CONTENT */}
+        <div className="flex-1">
+
+          {/* TOP */}
+          <div
+            className="
+              flex items-start
+              justify-between
+              gap-4
+              flex-wrap
+            "
+          >
+
+            <div>
+
+              {/* USERNAME */}
+              <h1
                 className="
-                  flex items-center
-                  gap-2 rounded-2xl
-                  border border-white/10
-                  bg-white/[0.05]
-                  px-6 py-3
-                  text-sm font-medium
-                  text-white
-                  transition-all
-                  hover:border-cyan-400/30
-                  hover:bg-cyan-500/10
-                  hover:shadow-[0_0_30px_rgba(34,211,238,0.15)]
+                  text-[18px]
+                  font-medium
+                  tracking-tight
+                  text-slate-300
+                "
+              >
+                @{user?.username}
+              </h1>
+
+              {/* STATS */}
+              <div
+                className="
+                  mt-5 flex
+                  items-center
+                  gap-5
+                  text-sm
+                  flex-wrap
                 "
               >
 
-                <PencilSimple
-                  size={18}
-                  weight="bold"
+                <Stat
+                  value={postsCount}
+                  label="posts"
                 />
 
-                Edit Profile
+                <Stat
+                  value="24.8k"
+                  label="followers"
+                />
 
-              </button>
+                <Stat
+                  value="1.2k"
+                  label="following"
+                />
+
+              </div>
 
             </div>
 
-            {/* STATS */}
-            <div
+            {/* EDIT BUTTON */}
+            <button
+              onClick={onEdit}
               className="
-                mt-10 flex
-                flex-wrap gap-6
+                flex items-center
+                gap-2
+                rounded-lg
+                border border-white/10
+                bg-white/[0.04]
+                px-4 py-2
+                text-sm
+                font-medium
+                text-slate-200
+                transition-all duration-200
+                hover:bg-white/[0.08]
               "
             >
 
-              <StatCard
-                value={postsCount}
-                label="Posts"
+              <PencilSimple
+                size={15}
+                weight="bold"
               />
 
-              <StatCard
-                value="24.8k"
-                label="Followers"
-              />
+              Edit profile
 
-              <StatCard
-                value="1.2k"
-                label="Following"
-              />
+            </button>
 
-            </div>
+          </div>
+
+          {/* NAME + BIO */}
+          <div className="mt-6">
+
+            <h2
+              className="
+                text-[20px]
+                font-semibold
+                tracking-tight
+                text-white
+              "
+            >
+              {fullName ||
+                "Unknown User"}
+            </h2>
+
+            <p
+              className="
+                mt-3
+                max-w-2xl
+                text-[15px]
+                leading-7
+                text-slate-300
+              "
+            >
+              {user?.bio ||
+                "Full Stack Developer building scalable and modern web applications with React & Django."}
+            </p>
 
           </div>
 
@@ -302,11 +220,11 @@ export default function ProfileHeader({
 
       </div>
 
-    </motion.div>
+    </motion.section>
   );
 }
 
-function StatCard({
+function Stat({
   value,
   label,
 }) {
@@ -314,33 +232,29 @@ function StatCard({
   return (
     <div
       className="
-        rounded-3xl
-        border border-white/10
-        bg-white/[0.04]
-        px-7 py-5
-        backdrop-blur-xl
+        rounded-lg
+        bg-white/[0.05]
+        px-3 py-2
       "
     >
 
-      <h3
+      <span
         className="
-          text-3xl
-          font-black
+          font-semibold
           text-white
         "
       >
         {value}
-      </h3>
+      </span>
 
-      <p
+      <span
         className="
-          mt-1
-          text-sm
+          ml-1
           text-slate-400
         "
       >
         {label}
-      </p>
+      </span>
 
     </div>
   );

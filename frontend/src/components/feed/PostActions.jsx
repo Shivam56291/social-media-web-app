@@ -73,7 +73,7 @@ export default function PostActions({
   return (
     <div
       className="
-        mb-4 flex
+       flex
         items-center gap-6
       "
     >

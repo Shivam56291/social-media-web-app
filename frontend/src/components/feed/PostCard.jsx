@@ -93,8 +93,6 @@ export default function PostCard({
 
       } catch (error) {
 
-        console.log(error);
-
         dispatch(
           restorePost(post)
         );
@@ -134,7 +132,7 @@ export default function PostCard({
 
   }, []);
 
-  /* FIX INDEX */
+  /* FIX IMAGE INDEX */
   useEffect(() => {
 
     if (
@@ -179,7 +177,7 @@ export default function PostCard({
         layout
         initial={{
           opacity: 0,
-          y: 40,
+          y: 24,
         }}
         animate={{
           opacity: 1,
@@ -187,22 +185,16 @@ export default function PostCard({
         }}
         exit={{
           opacity: 0,
-          y: -30,
+          y: -20,
         }}
         transition={{
-          duration: 0.35,
-          ease: "easeOut",
+          duration: 0.25,
         }}
         className="
           overflow-hidden
-          rounded-3xl
+          rounded-2xl
           border border-white/10
-          bg-white/[0.04]
-          backdrop-blur-xl
-          transition-all
-          duration-300
-          hover:border-cyan-400/20
-          hover:shadow-[0_0_40px_rgba(34,211,238,0.08)]
+          bg-[#0F172A]
         "
       >
 
@@ -211,32 +203,25 @@ export default function PostCard({
           className="
             flex items-center
             justify-between
-            p-5
+            px-4 py-3
           "
         >
 
           <div
             className="
-              flex items-center gap-4
+              flex items-center
+              gap-3
             "
           >
 
             {/* AVATAR */}
             <div
-              data-tooltip-id="global-tooltip"
-              data-tooltip-content={
-                user?.username
-              }
               className="
-                flex h-14 w-14
-                items-center
-                justify-center
+                h-11 w-11
                 overflow-hidden
-                rounded-2xl
-                bg-gradient-to-br
-                from-indigo-500
-                to-cyan-500
-                font-bold
+                rounded-full
+                bg-[#1E293B]
+                ring-1 ring-white/10
               "
             >
 
@@ -253,9 +238,20 @@ export default function PostCard({
 
               ) : (
 
-                user?.username
-                  ?.charAt(0)
-                  ?.toUpperCase()
+                <div
+                  className="
+                    flex h-full
+                    w-full items-center
+                    justify-center
+                    text-sm
+                    font-bold
+                    text-white
+                  "
+                >
+                  {user?.username
+                    ?.charAt(0)
+                    ?.toUpperCase()}
+                </div>
 
               )}
 
@@ -266,7 +262,9 @@ export default function PostCard({
 
               <h3
                 className="
-                  font-semibold
+                  text-[15px]
+                  font-medium
+                  text-white
                 "
               >
                 {user?.username}
@@ -274,7 +272,8 @@ export default function PostCard({
 
               <p
                 className="
-                  text-sm text-slate-400
+                  text-xs
+                  text-slate-400
                 "
               >
                 {formatDistanceToNow(
@@ -304,15 +303,15 @@ export default function PostCard({
                 )
               }
               className="
-                rounded-xl
-                p-2
+                rounded-full
+                p-1.5
                 transition-all
                 hover:bg-white/10
               "
             >
 
               <DotsThree
-                size={24}
+                size={20}
                 className="
                   text-slate-400
                 "
@@ -329,7 +328,7 @@ export default function PostCard({
                   <motion.div
                     initial={{
                       opacity: 0,
-                      y: -8,
+                      y: -6,
                     }}
                     animate={{
                       opacity: 1,
@@ -337,21 +336,16 @@ export default function PostCard({
                     }}
                     exit={{
                       opacity: 0,
-                      y: -8,
-                    }}
-                    transition={{
-                      duration: 0.18,
+                      y: -6,
                     }}
                     className="
-                      absolute right-0 top-12
+                      absolute right-0 top-10
                       z-30
-                      w-52
+                      w-44
                       overflow-hidden
-                      rounded-2xl
+                      rounded-xl
                       border border-white/10
-                      bg-[#0f172a]/95
-                      shadow-2xl
-                      backdrop-blur-xl
+                      bg-[#111827]
                     "
                   >
 
@@ -368,17 +362,16 @@ export default function PostCard({
                       }}
                       className="
                         flex w-full
-                        items-center gap-3
+                        items-center gap-2
                         px-4 py-3
                         text-sm
                         text-slate-200
-                        transition-all
-                        hover:bg-cyan-500/10
+                        hover:bg-white/5
                       "
                     >
 
                       <PencilSimple
-                        size={18}
+                        size={16}
                       />
 
                       Edit Post
@@ -391,17 +384,16 @@ export default function PostCard({
                       }
                       className="
                         flex w-full
-                        items-center gap-3
+                        items-center gap-2
                         px-4 py-3
                         text-sm
                         text-red-400
-                        transition-all
                         hover:bg-red-500/10
                       "
                     >
 
                       <Trash
-                        size={18}
+                        size={16}
                       />
 
                       Delete Post
@@ -421,11 +413,12 @@ export default function PostCard({
         {/* CONTENT */}
         {post.content && (
 
-          <div className="px-5 pb-4">
+          <div className="px-4 pb-3">
 
             <p
               className="
                 whitespace-pre-wrap
+                text-[15px]
                 leading-7
                 text-slate-300
               "
@@ -437,17 +430,16 @@ export default function PostCard({
 
         )}
 
-        {/* MULTI IMAGE */}
+        {/* IMAGES */}
         {images.length > 0 && (
 
-          <div className="px-3 pb-3">
+          <div className="px-3">
 
-            {/* MAIN IMAGE */}
             <div
               className="
                 relative
                 overflow-hidden
-                rounded-[28px]
+                rounded-2xl
                 bg-black
               "
             >
@@ -455,9 +447,9 @@ export default function PostCard({
               <div
                 className="
                   relative
-                  h-[420px]
+                  h-[360px]
                   w-full
-                  md:h-[520px]
+                  md:h-[460px]
                 "
               >
 
@@ -480,7 +472,7 @@ export default function PostCard({
                     loading="lazy"
                     initial={{
                       opacity: 0,
-                      x: 40,
+                      x: 20,
                     }}
                     animate={{
                       opacity: 1,
@@ -488,10 +480,10 @@ export default function PostCard({
                     }}
                     exit={{
                       opacity: 0,
-                      x: -40,
+                      x: -20,
                     }}
                     transition={{
-                      duration: 0.25,
+                      duration: 0.2,
                     }}
                     className="
                       absolute inset-0
@@ -508,19 +500,18 @@ export default function PostCard({
 
                   <div
                     className="
-                      absolute right-4 top-4
+                      absolute right-3 top-3
                       rounded-full
                       bg-black/50
-                      px-3 py-1
-                      text-xs
+                      px-2.5 py-1
+                      text-[11px]
+                      text-white
                       backdrop-blur-xl
                     "
                   >
                     {activeImage + 1}
                     /
-                    {
-                      images.length
-                    }
+                    {images.length}
                   </div>
 
                 )}
@@ -533,8 +524,8 @@ export default function PostCard({
                       prevImage
                     }
                     className="
-                      absolute left-4 top-1/2
-                      flex h-11 w-11
+                      absolute left-3 top-1/2
+                      flex h-9 w-9
                       -translate-y-1/2
                       items-center
                       justify-center
@@ -545,7 +536,7 @@ export default function PostCard({
                   >
 
                     <CaretLeft
-                      size={22}
+                      size={18}
                     />
 
                   </button>
@@ -562,8 +553,8 @@ export default function PostCard({
                       nextImage
                     }
                     className="
-                      absolute right-4 top-1/2
-                      flex h-11 w-11
+                      absolute right-3 top-1/2
+                      flex h-9 w-9
                       -translate-y-1/2
                       items-center
                       justify-center
@@ -574,7 +565,7 @@ export default function PostCard({
                   >
 
                     <CaretRight
-                      size={22}
+                      size={18}
                     />
 
                   </button>
@@ -590,7 +581,7 @@ export default function PostCard({
 
               <div
                 className="
-                  mt-3 flex
+                  mt-2 flex
                   gap-2
                   overflow-x-auto
                   pb-1
@@ -611,18 +602,16 @@ export default function PostCard({
                         )
                       }
                       className={`
-                        relative
-                        h-16
-                        w-16
+                        h-14
+                        w-14
                         shrink-0
                         overflow-hidden
-                        rounded-2xl
+                        rounded-xl
                         border
-                        transition-all
                         ${
                           activeImage ===
                           index
-                            ? "border-cyan-400"
+                            ? "border-white"
                             : "border-white/10"
                         }
                       `}
@@ -652,7 +641,7 @@ export default function PostCard({
         )}
 
         {/* ACTIONS */}
-        <div className="px-5 pb-5">
+        <div className="px-4 py-3">
 
           <PostActions
             post={post}
