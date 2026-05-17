@@ -59,44 +59,25 @@ export default function LoginForm({
       setApiError("");
 
       // LOGIN
-      const loginResponse =
-        await authService.login({
-          login: data.login,
-          password: data.password,
-        });
+      const loginResponse = await authService.login({
+        login: data.login,
+        password: data.password,
+      });
 
-      // STORE TOKENS FIRST
-      authStorage.setAuth(
-        {
-          access: loginResponse.access,
-          refresh: loginResponse.refresh,
-          user: null,
-        },
-        rememberMe
-      );
+      // store access token only
+      authStorage.setAccess(loginResponse.access);
 
-      // FETCH FULL USER
-      const user =
-        await authService.getCurrentUser();
+      // fetch user
+      const user = await authService.getCurrentUser();
 
-      // STORE AGAIN WITH USER
-      authStorage.setAuth(
-        {
-          access: loginResponse.access,
-          refresh: loginResponse.refresh,
-          user,
-        },
-        rememberMe
-      );
+      // store user
+      authStorage.setUser(user);
 
-      // REDUX
-      dispatch(
-        loginSuccess({
-          access: loginResponse.access,
-          refresh: loginResponse.refresh,
-          user,
-        })
-      );
+      // redux
+      dispatch(loginSuccess({
+        access: loginResponse.access,
+        user,
+      }));
 
       navigate("/dashboard");
 

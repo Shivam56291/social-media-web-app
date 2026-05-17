@@ -55,4 +55,39 @@ export const postService = {
 
     return response.data;
   },
+
+  async getUserPosts(userId) {
+    const response =
+      await api.get(
+        `/posts/user/${userId}/`
+      );
+
+    return response.data;
+  },
+
+  async getComments (
+    postId
+  ) {
+
+    const response =
+      await api.get(
+        `/posts/${postId}/comments/`
+      );
+
+    return response.data;
+  },
+
+  async createComment (
+    postId,
+    data
+  ) {
+
+    const response =
+      await api.post(
+        `/posts/${postId}/comments/`,
+        data
+      );
+
+    return response.data;
+  },
 };

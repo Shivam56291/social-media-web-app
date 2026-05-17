@@ -1,98 +1,26 @@
 export const authStorage = {
-  setAuth(data, remember = true) {
-
-    const storage = remember
-      ? localStorage
-      : sessionStorage;
-
-    storage.setItem(
-      "access",
-      data.access
-    );
-
-    storage.setItem(
-      "refresh",
-      data.refresh
-    );
-
-    // STORE USER SAFELY
-    storage.setItem(
-      "user",
-      JSON.stringify(
-        data.user || null
-      )
-    );
+  setAccess(token) {
+    sessionStorage.setItem("access", token);
   },
 
   getAccess() {
-    return (
-      localStorage.getItem("access") ||
-      sessionStorage.getItem("access")
-    );
+    return sessionStorage.getItem("access");
   },
 
-  getRefresh() {
-    return (
-      localStorage.getItem("refresh") ||
-      sessionStorage.getItem("refresh")
-    );
+  setUser(user) {
+    sessionStorage.setItem("user", JSON.stringify(user));
   },
-  setAccessToken(access) {
-
-  const storage =
-    localStorage.getItem("access")
-      ? localStorage
-      : sessionStorage;
-
-  storage.setItem(
-    "access",
-    access
-  );
-  },
-  setRefreshToken(refresh) {
-
-  const storage =
-    localStorage.getItem("refresh")
-      ? localStorage
-      : sessionStorage;
-
-  storage.setItem(
-    "refresh",
-    refresh
-  );
-},
 
   getUser() {
-
-  try {
-
-    const user =
-      localStorage.getItem("user") ||
-      sessionStorage.getItem("user");
-
-    if (!user || user === "undefined") {
+    try {
+      return JSON.parse(sessionStorage.getItem("user"));
+    } catch {
       return null;
     }
-
-    return JSON.parse(user);
-
-  } catch (error) {
-
-    return null;
-  }
-},
+  },
 
   clear() {
-
-    [
-      "access",
-      "refresh",
-      "user",
-    ].forEach((key) => {
-
-      localStorage.removeItem(key);
-
-      sessionStorage.removeItem(key);
-    });
-  },
+    sessionStorage.removeItem("access");
+    sessionStorage.removeItem("user");
+  }
 };

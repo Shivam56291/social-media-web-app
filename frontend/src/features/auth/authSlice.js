@@ -4,7 +4,6 @@ import { authStorage } from "../../services/authStorage";
 
 const initialState = {
   access: authStorage.getAccess(),
-  refresh: authStorage.getRefresh(),
   user: authStorage.getUser(),
   loading: false,
 };
@@ -19,33 +18,18 @@ const authSlice = createSlice({
       state.loading = true;
     },
 
-    loginSuccess: (
-  state,
-  action
-) => {
-
+loginSuccess: (state, action) => {
   state.loading = false;
+  state.access = action.payload.access;
+  state.user = action.payload.user;
 
-  state.access =
-    action.payload.access;
-
-  state.refresh =
-    action.payload.refresh;
-
-  state.user =
-    action.payload.user;
-
-  /* SAVE AUTH TO STORAGE */
-  authStorage.setAuth(
-    action.payload,
-    action.payload.remember ?? true
-  );
+  // store separately (NOT setAuth)
+  authStorage.setAccess(action.payload.access);
+  authStorage.setUser(action.payload.user);
 },
 
     logout: (state) => {
       state.access = null;
-
-      state.refresh = null;
 
       state.user = null;
 

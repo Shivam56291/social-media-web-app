@@ -43,113 +43,41 @@ api.interceptors.request.use(
 
 /* RESPONSE INTERCEPTOR */
 api.interceptors.response.use(
+  res => res,
 
-  /* SUCCESS */
-  (response) => response,
-
-  /* ERROR */
   async (error) => {
+    const original = error.config;
 
-    const originalRequest =
-      error.config;
-
-    /* TOKEN EXPIRED */
     if (
-
       error.response?.status === 401 &&
-
-      !originalRequest._retry
-
+      !original._retry
     ) {
-
-      originalRequest._retry =
-        true;
+      original._retry = true;
 
       try {
-
-        const refresh =
-          authStorage.getRefresh();
-
-        /* NO REFRESH TOKEN */
-        if (!refresh) {
-
-          authStorage.clear();
-
-          window.location.href =
-            "/";
-
-          return Promise.reject(
-            error
-          );
-        }
-
-        /* GET NEW TOKENS */
-        const response =
-          await axios.post(
-
-            `${import.meta.env.VITE_API_BASE_URL}/users/token/refresh/`,
-
-            {
-              refresh,
-            }
-          );
-
-        const {
-
-          access,
-
-          refresh: newRefresh,
-
-        } = response.data;
-
-
-        /* SAVE NEW ACCESS TOKEN */
-        authStorage.setAccessToken(
-          access
+        // 🔥 COOKIE BASED REFRESH CALL
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/users/token/refresh/`,
+          {},
+          { withCredentials: true }
         );
 
+        const newAccess = res.data.access;
 
-        /* SAVE NEW REFRESH TOKEN */
-        if (newRefresh) {
+        authStorage.setAccess(newAccess);
 
-          authStorage.setRefreshToken(
-            newRefresh
-          );
-        }
+        original.headers.Authorization = `Bearer ${newAccess}`;
 
+        return api(original);
 
-        /* UPDATE FAILED REQUEST HEADER */
-        originalRequest.headers.Authorization =
-          `Bearer ${access}`;
-
-
-        /* RETRY ORIGINAL REQUEST */
-        return api(
-          originalRequest
-        );
-
-      } catch (refreshError) {
-
-        console.log(
-          "Refresh token failed:",
-          refreshError
-        );
-
-        /* FORCE LOGOUT */
+      } catch (err) {
         authStorage.clear();
-
-        window.location.href =
-          "/";
-
-        return Promise.reject(
-          refreshError
-        );
+        window.location.href = "/";
+        return Promise.reject(err);
       }
     }
 
-    return Promise.reject(
-      error
-    );
+    return Promise.reject(error);
   }
 );
 

@@ -55,35 +55,34 @@ class RegisterView(
 
 
 # LOGIN
-class LoginView(
-    generics.GenericAPIView
-):
-
-    serializer_class = (
-        LoginSerializer
-    )
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
 
     def post(self, request):
-
-        serializer = self.get_serializer(
-            data=request.data
-        )
-
-        serializer.is_valid(
-            raise_exception=True
-        )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         user = serializer.user
+        update_last_login(None, user)
 
-        update_last_login(
-            None,
-            user
+        refresh = RefreshToken.for_user(user)
+
+        res = Response({
+            "access": str(refresh.access_token),
+            "user": UserSerializer(user).data,
+        })
+
+        # 🔥 IMPORTANT: HttpOnly cookie (refresh token)
+        res.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,
+            secure=False,   # set True in production HTTPS
+            samesite="Lax",
+            max_age=7 * 24 * 60 * 60,
         )
 
-        return Response(
-            serializer.validated_data,
-            status=status.HTTP_200_OK
-        )
+        return res
 
 
 # CURRENT USER
@@ -135,9 +134,12 @@ class UpdateEmailView(
 
         serializer = (
             UpdateEmailSerializer(
-                data=request.data
+                data=request.data,
+                context={
+                    "request": request
+                }
             )
-        )
+)
 
         serializer.is_valid(
             raise_exception=True
@@ -376,3 +378,26 @@ class MyPostsView(
             )
             .order_by("-created_at")
         )
+
+class CookieTokenRefreshView(APIView):
+    def post(self, request):
+        try:
+            refresh_token = request.COOKIES.get("refresh_token")
+
+            if not refresh_token:
+                return Response(
+                    {"detail": "No refresh token"},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            refresh = RefreshToken(refresh_token)
+
+            return Response({
+                "access": str(refresh.access_token),
+            })
+
+        except Exception:
+            return Response(
+                {"detail": "Invalid refresh"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )

@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import (
 from apps.users.views import (
     RegisterView,
     LoginView,
+    CookieTokenRefreshView,
     CurrentUserView,
 
     UpdateProfileView,
@@ -40,6 +41,10 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name="token_refresh"
     ),
+    path(
+    "token/refresh/",
+    CookieTokenRefreshView.as_view(),
+),
 
 
     # CURRENT USER
