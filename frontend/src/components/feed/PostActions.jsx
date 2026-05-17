@@ -21,6 +21,7 @@ import { postService }
 
 export default function PostActions({
   post,
+  onShareClick, // Prop forward handler
 }) {
 
   const dispatch =
@@ -35,12 +36,10 @@ export default function PostActions({
   const handleLike =
     async () => {
 
-      // prevent spam clicks
       if (liking) return;
 
       setLiking(true);
 
-      // optimistic UI
       dispatch(
         toggleLikeOptimistic(
           post.id
@@ -57,7 +56,6 @@ export default function PostActions({
 
         console.log(error);
 
-        // rollback
         dispatch(
           toggleLikeOptimistic(
             post.id
@@ -73,7 +71,7 @@ export default function PostActions({
   return (
     <div
       className="
-       flex
+        mb-4 flex
         items-center gap-6
       "
     >
@@ -164,6 +162,7 @@ export default function PostActions({
 
       {/* SHARE */}
       <button
+        onClick={() => onShareClick(post)} // Dispatches target object details
         className="
           rounded-xl
           p-2

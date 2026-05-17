@@ -61,10 +61,15 @@ export default function FeedPage() {
       state.feed
   );
 
+  // States for creating a regular new post
   const [
     openModal,
     setOpenModal,
   ] = useState(false);
+
+  // ADDED: States for sharing/reposting an existing post 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [activePostToShare, setActivePostToShare] = useState(null);
 
   /* FETCH POSTS */
   useEffect(() => {
@@ -100,6 +105,17 @@ export default function FeedPage() {
     fetchFeed();
 
   }, [dispatch]);
+
+  // ADDED: Share triggers
+  const handleOpenShareModal = (post) => {
+    setActivePostToShare(post);
+    setIsShareModalOpen(true);
+  };
+
+  const handleCloseShareModal = () => {
+    setIsShareModalOpen(false);
+    setActivePostToShare(null);
+  };
 
   return (
     <>
@@ -171,8 +187,10 @@ export default function FeedPage() {
                     }}
                   >
 
+                    {/* UPDATED: Forward the click event down into PostCard */}
                     <PostCard
                       post={post}
+                      onShareClick={handleOpenShareModal}
                     />
 
                   </motion.div>
@@ -206,13 +224,21 @@ export default function FeedPage() {
 
       </div>
 
-      {/* CREATE POST */}
+      {/* CREATE POST MODAL (For standard brand new posts) */}
       <CreatePostModal
         open={openModal}
         onClose={() =>
           setOpenModal(false)
         }
         user={user}
+      />
+
+      {/* ADDED: SHARE POST MODAL (For quote sharing/reposting existing records) */}
+      <CreatePostModal
+        open={isShareModalOpen}
+        onClose={handleCloseShareModal}
+        user={user}
+        sharePostData={activePostToShare}
       />
 
       {/* TOOLTIP */}

@@ -13,6 +13,16 @@ export const postService = {
     return response.data;
   },
 
+  /* SHARE POST UTILITY */
+  async sharePost(postId, data) {
+    const response = await api.post(
+      `/posts/${postId}/share/`,
+      data
+    );
+
+    return response.data;
+  },
+
   async getFeed() {
 
     const response =

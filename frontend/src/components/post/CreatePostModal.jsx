@@ -43,9 +43,12 @@ export default function CreatePostModal({
   open,
   onClose,
   user,
+  sharePostData = null, // Accept the post being shared/reposted
 }) {
 
   const dispatch = useDispatch();
+
+  const isSharing = !!sharePostData;
 
   const [caption, setCaption] =
     useState("");
@@ -132,6 +135,8 @@ export default function CreatePostModal({
   /* IMAGE PICK */
   const handleImagePick =
     async (e) => {
+
+      if (isSharing) return; // Prevent upload when sharing
 
       const files =
         Array.from(e.target.files);
@@ -324,16 +329,22 @@ export default function CreatePostModal({
         setApiError("");
 
         const payload = {
-          content:
-            caption.trim(),
-          image_urls:
-            imageUrls,
+          content: caption.trim(),
         };
 
-        const createdPost =
-          await postService.createPost(
+        let createdPost;
+
+        if (isSharing) {
+          // Send request to PostShareView sharing endpoint
+          createdPost = await postService.sharePost(
+            sharePostData.id, 
             payload
           );
+        } else {
+          // Standard post endpoint includes image arrays
+          payload.image_urls = imageUrls;
+          createdPost = await postService.createPost(payload);
+        }
 
         dispatch(
           addPost(createdPost)
@@ -349,7 +360,7 @@ export default function CreatePostModal({
         resetState();
 
         showToast.success(
-          "Post published ✨"
+          isSharing ? "Post shared ✨" : "Post published ✨"
         );
 
       } catch (error) {
@@ -357,11 +368,11 @@ export default function CreatePostModal({
         console.log(error);
 
         setApiError(
-          "Failed to publish post"
+          isSharing ? "Failed to share post" : "Failed to publish post"
         );
 
         showToast.error(
-          "Post publish failed"
+          isSharing ? "Post share failed" : "Post publish failed"
         );
 
       } finally {
@@ -450,7 +461,7 @@ export default function CreatePostModal({
                   font-black
                 "
               >
-                Create Post
+                {isSharing ? "Share Post" : "Create Post"}
               </h2>
 
               <p
@@ -459,7 +470,7 @@ export default function CreatePostModal({
                   text-slate-400
                 "
               >
-                Share your moment ✨
+                {isSharing ? "Add your thoughts on this thread" : "Share your moment ✨"}
               </p>
 
             </div>
@@ -574,7 +585,7 @@ export default function CreatePostModal({
                     e.target.value
                   )
                 }
-                placeholder="What's happening today?"
+                placeholder={isSharing ? "Add an optional comment..." : "What's happening today?"}
                 className="
                   min-h-[110px]
                   max-h-[180px]
@@ -644,18 +655,35 @@ export default function CreatePostModal({
               </AnimatePresence>
             </div>
 
-            {/* MEDIA */}
-            <PostMediaPreview
-              imagePreviews={
-                imagePreviews
-              }
-              removeMedia={
-                removeMedia
-              }
-              onPickImage={() =>
-                imageInputRef.current.click()
-              }
-            />
+            {/* CONDITIONAL MEDIA PREVIEW OR TARGET POST PREVIEW */}
+            {isSharing ? (
+              <div
+                className="
+                  mt-5 rounded-[24px]
+                  border border-white/10
+                  bg-white/[0.02]
+                  p-5
+                "
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-6 w-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold">
+                    {sharePostData.author?.username?.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-semibold text-slate-300">
+                    @{sharePostData.author?.username || "user"}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-400 line-clamp-3 leading-relaxed">
+                  {sharePostData.content}
+                </p>
+              </div>
+            ) : (
+              <PostMediaPreview
+                imagePreviews={imagePreviews}
+                removeMedia={removeMedia}
+                onPickImage={() => imageInputRef.current.click()}
+              />
+            )}
 
             {/* ERROR */}
             {apiError && (
@@ -698,33 +726,34 @@ export default function CreatePostModal({
               }
             />
 
-            <button
-              type="button"
-              onClick={() =>
-                imageInputRef.current.click()
-              }
-              className="
-                rounded-2xl
-                border border-white/10
-                bg-white/[0.04]
-                px-5 py-3
-                text-sm
-                font-medium
-                transition-all
-                hover:bg-white/[0.08]
-              "
-            >
-              Add Photos
-            </button>
+            {!isSharing ? (
+              <button
+                type="button"
+                onClick={() =>
+                  imageInputRef.current.click()
+                }
+                className="
+                  rounded-2xl
+                  border border-white/10
+                  bg-white/[0.04]
+                  px-5 py-3
+                  text-sm
+                  font-medium
+                  transition-all
+                  hover:bg-white/[0.08]
+                "
+              >
+                Add Photos
+              </button>
+            ) : (
+              <div /> // Clear spacer block to align button rightward
+            )}
 
             <button
               disabled={
                 loading ||
                 uploadingImage ||
-                (
-                  !caption.trim() &&
-                  imageUrls.length === 0
-                )
+                (!isSharing && !caption.trim() && imageUrls.length === 0)
               }
               onClick={
                 handleCreatePost
@@ -752,14 +781,14 @@ export default function CreatePostModal({
                     "
                   />
 
-                  Publishing...
+                  {isSharing ? "Sharing..." : "Publishing..."}
                 </>
 
               ) : (
 
                 <>
                   <Sparkle size={18} />
-                  Publish
+                  {isSharing ? "Share" : "Publish"}
                 </>
 
               )}
