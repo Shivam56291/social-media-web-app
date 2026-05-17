@@ -1,6 +1,6 @@
 # 🚀 Active API Endpoints
 
-This document provides a comprehensive overview of the active API endpoints available in the application[cite: 1]. All API endpoints are prefixed with `/api/`[cite: 1].
+This document provides a comprehensive overview of the active API endpoints available in the application[cite: 1]. All API endpoints are prefixed with `/api/`.
 
 ---
 
@@ -10,7 +10,7 @@ This document provides a comprehensive overview of the active API endpoints avai
 ---
 
 ## 🔐 User & Authentication
-**Base URL:** `/api/users/`[cite: 1]
+**Base URL:** `/api/users/`
 
 > [!IMPORTANT]
 > To allow the frontend to communicate with these endpoints, ensure your **Backend Configuration (Django)** includes the necessary CORS headers.
@@ -74,6 +74,11 @@ These endpoints are handled directly in the root `urlpatterns`[cite: 1].
 | `<int:id>/` | **GET** | Retrieve comprehensive data for a single post by its ID. |
 | `<int:id>/` | **PUT/PATCH** | Update the content or media of an existing post (Author only). |
 | `<int:id>/` | **DELETE** | Permanently delete a post from the platform (Author only). |
+
+### 📢 Post Sharing
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `<int:id>/share/` | **POST** | Share or amplify an existing post. Increments the share count and logs the activity. |
 
 ### 💬 Interactions & Socials
 | Endpoint | Method | Description |

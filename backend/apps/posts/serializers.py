@@ -41,6 +41,11 @@ class PostSerializer(serializers.ModelSerializer):
 
     is_liked = serializers.SerializerMethodField()
 
+    shares_count = serializers.SerializerMethodField()
+
+    # This renders the original post details nested inside the shared post representation
+    parent_post_detail = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
 
@@ -53,6 +58,9 @@ class PostSerializer(serializers.ModelSerializer):
             "likes_count",
             "comments_count",
             "is_liked",
+            "shares_count",
+            "parent_post",
+            "parent_post_detail",
             "created_at",
             "updated_at",
         ]
@@ -85,6 +93,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_comments_count(self, obj):
         return obj.comments.count()
+    
+    def get_shares_count(self, obj):
+        return obj.shares.count()
 
     def get_is_liked(self, obj):
 
@@ -100,3 +111,8 @@ class PostSerializer(serializers.ModelSerializer):
             ).exists()
 
         return False
+    
+    def get_parent_post_detail(self, obj):
+        if obj.parent_post:
+            return PostSerializer(obj.parent_post, context=self.context).data
+        return None

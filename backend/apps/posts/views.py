@@ -87,6 +87,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
         serializer.save(author=self.request.user, post=post)
 
 
+# 7. COMMENT DETAILS (RETRIEVE, UPDATE, OR DELETE A COMMENT WITH OWNERSHIP CHECKS)
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
@@ -112,3 +113,29 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         return super().destroy(request, *args, **kwargs)
+
+
+# 8. SHARE POST (REPOST / RETWEET AN EXISTING POST WITH OPTIONAL THOUGHTS)
+class PostShareView(generics.CreateAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        parent_post_id = self.kwargs["post_id"]
+        parent_post = get_object_or_404(Post, id=parent_post_id)
+        
+        # Optional: prevent sharing a share to avoid deep recursive nesting chains
+        if parent_post.parent_post:
+            # If they try to share a share, reference the original source root post instead
+            parent_post = parent_post.parent_post
+
+        content = request.data.get("content", "")
+
+        shared_post = Post.objects.create(
+            author=request.user,
+            parent_post=parent_post,
+            content=content
+        )
+
+        serializer = self.get_serializer(shared_post)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

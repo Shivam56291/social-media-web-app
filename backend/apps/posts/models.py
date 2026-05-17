@@ -22,6 +22,15 @@ class Post(models.Model):
         related_name="liked_posts",
         blank=True
     )
+
+    # NEW FIELD: Reference to the original post if this is a share/repost
+    parent_post = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        related_name="shares",
+        blank=True,
+        null=True
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

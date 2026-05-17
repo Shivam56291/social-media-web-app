@@ -7,6 +7,7 @@ from .views import (
     PostLikeToggleView,
     CommentListCreateView,
     CommentDetailView,
+    PostShareView,
 )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     path("<int:id>/like/", PostLikeToggleView.as_view(), name="post-like-toggle"),
     path("<int:post_id>/comments/", CommentListCreateView.as_view(), name="post-comments"),
     path("comments/<int:id>/", CommentDetailView.as_view(), name="comment-detail"),
+    path("<int:post_id>/share/", PostShareView.as_view(), name="post-share"),
 ]
