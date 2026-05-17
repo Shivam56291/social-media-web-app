@@ -2,6 +2,7 @@ import {
   Heart,
   ChatCircle,
   Images,
+  ShareFat, // Displayed for the shared/repost badge icon indicator
 } from "@phosphor-icons/react";
 
 import { motion } from "framer-motion";
@@ -13,8 +14,16 @@ export default function ProfilePostCard({
   onClick,
 }) {
 
-  const cover =
-    post.image_urls?.[0];
+  // Extract parent post reference if it's a quote share / repost
+  const isShared = !!post.parent_post_detail;
+  const parentPost = post.parent_post_detail;
+  const parentAuthor = parentPost?.author_detail;
+
+  // Fallback to the original post's first image if this is a share post
+  const cover = post.image_urls?.[0] || parentPost?.image_urls?.[0];
+
+  // Count images from either the post itself or the shared parent post reference
+  const imageCount = post.image_urls?.length || parentPost?.image_urls?.length || 0;
 
   const formattedDate =
     useMemo(() => {
@@ -56,7 +65,7 @@ export default function ProfilePostCard({
       "
     >
 
-      {/* IMAGE */}
+      {/* IMAGE CONTAINER */}
       <div
         className="
           relative aspect-[4/5]
@@ -99,51 +108,70 @@ export default function ProfilePostCard({
                 text-slate-300
               "
             >
-              {post.content}
+              {post.content || parentPost?.content}
             </p>
 
           </div>
 
         )}
 
-        {/* Overlay */}
+        {/* Dynamic Gradient Overlay */}
         <div
           className="
             absolute inset-0
             bg-gradient-to-t
-            from-black/90
-            via-black/10
-            to-transparent
+            from-black/95
+            via-black/30
+            to-black/40
           "
         />
 
-        {/* MULTI IMAGE */}
-        {post.image_urls?.length > 1 && (
+        {/* TOP RIGHT PLACEMENT: MULTI-IMAGE OR SHARED LOGO INDICATION BADGE */}
+        <div className="absolute right-3 top-3 flex items-center gap-2">
+          
+          {/* Display Shared Logo badge + Real owner name if it is a share post */}
+          {isShared && (
+            <div
+              className="
+                flex
+                items-center gap-1.5
+                rounded-full
+                bg-cyan-500/20
+                border border-cyan-500/30
+                px-3 py-1.5
+                text-[11px]
+                font-semibold
+                text-cyan-400
+                backdrop-blur-md
+              "
+            >
+              <ShareFat size={14} weight="fill" />
+              <span>@{parentAuthor?.username || "user"}</span>
+            </div>
+          )}
 
-          <div
-            className="
-              absolute right-3
-              top-3 flex
-              items-center gap-2
-              rounded-full
-              bg-black/50
-              px-3 py-1.5
-              text-xs
-              font-medium
-              text-white
-              backdrop-blur-md
-            "
-          >
+          {/* MULTI IMAGE COUNTER */}
+          {imageCount > 1 && (
+            <div
+              className="
+                flex
+                items-center gap-2
+                rounded-full
+                bg-black/50
+                px-3 py-1.5
+                text-xs
+                font-medium
+                text-white
+                backdrop-blur-md
+              "
+            >
+              <Images size={16} />
+              {imageCount}
+            </div>
+          )}
+        </div>
 
-            <Images size={16} />
-
-            {post.image_urls.length}
-
-          </div>
-
-        )}
-
-        {/* CONTENT */}
+        {/* CONTENT CAPTION AND METRICS FOOTER OVERLAY */}
         <div
           className="
             absolute inset-x-0
@@ -151,7 +179,7 @@ export default function ProfilePostCard({
           "
         >
 
-          {post.content && (
+          {post.content ? (
 
             <p
               className="
@@ -164,9 +192,24 @@ export default function ProfilePostCard({
               {post.content}
             </p>
 
-          )}
+          ) : isShared && parentPost?.content ? (
 
-          {/* META */}
+            /* Fallback display to the original post content if share caption text is blank */
+            <p
+              className="
+                line-clamp-2
+                text-sm
+                leading-6
+                text-slate-300
+                italic
+              "
+            >
+              "{parentPost.content}"
+            </p>
+
+          ) : null}
+
+          {/* META DATA DETAILS */}
           <div
             className="
               mt-4 flex

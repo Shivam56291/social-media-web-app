@@ -84,9 +84,14 @@ export default function ProfilePostModal({
   if (!open || !post)
     return null;
 
-  const hasImages =
-    post.image_urls &&
-    post.image_urls.length > 0;
+  // Extract nested share/repost information matching your Django backend structure
+  const isShared = !!post.parent_post_detail;
+  const parentPost = post.parent_post_detail;
+  const parentAuthor = parentPost?.author_detail;
+
+  // UPDATED: Post handles imagery if it has its own or if the shared target contains images
+  const targetImages = post.image_urls?.length > 0 ? post.image_urls : (parentPost?.image_urls || []);
+  const hasImages = targetImages.length > 0;
 
   const formattedDate =
     new Date(
@@ -198,7 +203,7 @@ export default function ProfilePostModal({
 
           </button>
 
-          {/* LEFT SIDE */}
+          {/* LEFT SIDE (DESKTOP IMAGERY SYSTEM) */}
           {hasImages && (
 
             <div
@@ -214,16 +219,14 @@ export default function ProfilePostModal({
 
               {/* IMAGE CAROUSEL */}
               <ProfileImageCarousel
-                images={
-                  post.image_urls
-                }
+                images={targetImages}
               />
 
             </div>
 
           )}
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT SIDE (CONTENT CAPTIONS & ENGAGEMENT LOGS) */}
           <div
             className="
               flex h-full
@@ -246,9 +249,7 @@ export default function ProfilePostModal({
               >
 
                 <ProfileImageCarousel
-                  images={
-                    post.image_urls
-                  }
+                  images={targetImages}
                 />
 
               </div>
@@ -447,67 +448,71 @@ export default function ProfilePostModal({
             >
 
               {/* POST CONTENT */}
-              {(post.content ||
-                !hasImages) && (
-
-                <div
-                  className="
-                    border-b
-                    border-white/5
-                    px-6 py-5
-                  "
-                >
-
-                  {!hasImages && (
-
-                    <div
-                      className="
-                        mb-6
-                        overflow-hidden
-                        rounded-3xl
-                        border border-white/5
-                        bg-gradient-to-br
-                        from-[#111827]
-                        via-[#0F172A]
-                        to-[#111827]
-                        p-8
-                      "
-                    >
-
-                      <p
-                        className="
-                          whitespace-pre-wrap
-                          text-[17px]
-                          leading-9
-                          text-slate-200
-                        "
-                      >
-                        {post.content}
-                      </p>
-
-                    </div>
-
-                  )}
-
-                  {hasImages &&
-                    post.content && (
-
-                    <p
-                      className="
-                        whitespace-pre-wrap
-                        text-[15px]
-                        leading-8
-                        text-slate-300
-                      "
-                    >
+              <div
+                className="
+                  border-b
+                  border-white/5
+                  px-6 py-5
+                  max-h-[40vh]
+                  overflow-y-auto
+                "
+              >
+                {/* Standard Text Box if there are no background images or parent images */}
+                {!hasImages && !isShared && post.content && (
+                  <div
+                    className="
+                      mb-2
+                      overflow-hidden
+                      rounded-3xl
+                      border border-white/5
+                      bg-gradient-to-br
+                      from-[#111827]
+                      via-[#0F172A]
+                      to-[#111827]
+                      p-8
+                    "
+                  >
+                    <p className="whitespace-pre-wrap text-[17px] leading-9 text-slate-200">
                       {post.content}
                     </p>
+                  </div>
+                )}
 
-                  )}
+                {/* Top caption display text if media elements exist */}
+                {hasImages && post.content && (
+                  <p className="whitespace-pre-wrap text-[15px] leading-8 text-slate-300 mb-4">
+                    {post.content}
+                  </p>
+                )}
 
-                </div>
+                {/* NEW: Premium Facebook/Twitter Quote Embed structure for reposted objects */}
+                {isShared && parentPost && (
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                    
+                    {/* Embedded Author Info header row */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-indigo-500 to-cyan-500 text-[10px] font-bold text-white">
+                        {parentAuthor?.avatar_url ? (
+                          <img src={parentAuthor.avatar_url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          parentAuthor?.username?.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold text-slate-200">
+                        @{parentAuthor?.username || "user"}
+                      </span>
+                      <span className="text-[10px] text-slate-500">• Original Thread</span>
+                    </div>
 
-              )}
+                    {/* Original core caption message text */}
+                    {parentPost.content && (
+                      <p className="text-xs text-slate-300 leading-5 whitespace-pre-wrap">
+                        {parentPost.content}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* ACTIONS */}
               <div
@@ -524,7 +529,7 @@ export default function ProfilePostModal({
 
               </div>
 
-              {/* COMMENTS */}
+              {/* COMMENTS LAYER */}
               <div
                 className="
                   min-h-0
