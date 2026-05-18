@@ -1,6 +1,6 @@
 # 🚀 Active API Endpoints
 
-This document provides a comprehensive overview of the active API endpoints available in the application[cite: 1]. All API endpoints are prefixed with `/api/`.
+This document provides a comprehensive overview of the active API endpoints available in the application. All API endpoints are prefixed with `/api/`.
 
 ---
 
@@ -44,21 +44,38 @@ This document provides a comprehensive overview of the active API endpoints avai
 ---
 
 ## 📋 Base Endpoints
-**Base URL:** `/api/base/`[cite: 1]
+**Base URL:** `/api/base/`
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `/` | **GET** | General entry point for the base API module[cite: 1]. |
+| `/` | **GET** | General entry point for the base API module. |
 
 ---
 
 ## 🌐 Global Routes
-These endpoints are handled directly in the root `urlpatterns`[cite: 1].
+These endpoints are handled directly in the root `urlpatterns`.
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
 | `/` | **GET** | Main application landing page. |
 | `admin/` | **N/A** | Django Administration interface. |
+
+---
+
+## 👥 Social & Relationships
+**Base URL:** `/api/users/`
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `get-user/<int:id>/` | **GET** | Retrieve public profile details for a specific user by their ID. |
+| `follow/<int:id>/` | **POST** | Send a follow request or follow a user by their ID. | 
+| `unfollow/<int:id>/` | **DELETE** | Unfollow a user by their ID. | 
+| `follow-request/<int:id>/accept/` | **PATCH** | Accept an incoming follow request by its ID. | 
+| `follow-request/<int:id>/reject/` | **DELETE** | Reject an incoming follow request by its ID. | 
+| `followers/` | **GET** | Fetch a list of all users following the currently authenticated user. | 
+| `following/` | **GET** | Fetch a list of all users the currently authenticated user is following. | 
+| `pending-requests/` | **GET** | Fetch a list of all pending incoming follow requests. |
+
 
 ---
 
