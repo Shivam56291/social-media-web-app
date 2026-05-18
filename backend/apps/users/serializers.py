@@ -15,6 +15,8 @@ from rest_framework_simplejwt.tokens import (
 
 from apps.posts.models import Post
 
+from .models import Follow
+
 User = get_user_model()
 
 
@@ -23,18 +25,26 @@ class UserPostSerializer(
     serializers.ModelSerializer
 ):
 
-    total_likes = serializers.SerializerMethodField()
-
-    comment_count = serializers.SerializerMethodField()
-
-    author_username = serializers.CharField(
-        source="author.username",
-        read_only=True
+    total_likes = (
+        serializers.SerializerMethodField()
     )
 
-    author_avatar = serializers.CharField(
-        source="author.avatar_url",
-        read_only=True
+    comment_count = (
+        serializers.SerializerMethodField()
+    )
+
+    author_username = (
+        serializers.CharField(
+            source="author.username",
+            read_only=True
+        )
+    )
+
+    author_avatar = (
+        serializers.CharField(
+            source="author.avatar_url",
+            read_only=True
+        )
     )
 
     class Meta:
@@ -43,14 +53,23 @@ class UserPostSerializer(
 
         fields = [
             "id",
+
             "author",
+
             "author_username",
+
             "author_avatar",
+
             "content",
+
             "image_urls",
+
             "total_likes",
+
             "comment_count",
+
             "created_at",
+
             "updated_at",
         ]
 
@@ -67,6 +86,66 @@ class UserPostSerializer(
     ):
 
         return obj.comments.count()
+
+
+# FOLLOW SERIALIZER
+class FollowSerializer(
+    serializers.ModelSerializer
+):
+
+    follower_username = (
+        serializers.CharField(
+            source="follower.username",
+            read_only=True
+        )
+    )
+
+    following_username = (
+        serializers.CharField(
+            source="following.username",
+            read_only=True
+        )
+    )
+
+    follower_avatar = (
+        serializers.CharField(
+            source="follower.avatar_url",
+            read_only=True
+        )
+    )
+
+    following_avatar = (
+        serializers.CharField(
+            source="following.avatar_url",
+            read_only=True
+        )
+    )
+
+    class Meta:
+
+        model = Follow
+
+        fields = [
+            "id",
+
+            "follower",
+            "follower_username",
+            "follower_avatar",
+
+            "following",
+            "following_username",
+            "following_avatar",
+
+            "status",
+
+            "created_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "created_at",
+            "follower",
+        ]
 
 
 # REGISTER
@@ -217,7 +296,8 @@ class LoginSerializer(
             "refresh": str(refresh),
 
             "user": UserSerializer(
-                user
+                user,
+                context=self.context
             ).data,
         }
 
@@ -239,6 +319,10 @@ class UserSerializer(
         serializers.SerializerMethodField()
     )
 
+    follow_status = (
+        serializers.SerializerMethodField()
+    )
+
     posts = UserPostSerializer(
         many=True,
         read_only=True
@@ -250,17 +334,30 @@ class UserSerializer(
 
         fields = [
             "id",
+
             "username",
+
             "email",
+
             "first_name",
+
             "last_name",
+
             "bio",
+
             "avatar_url",
+
+            "is_private",
+
             "created_at",
 
             "follower_count",
+
             "following_count",
+
             "post_count",
+
+            "follow_status",
 
             "posts",
         ]
@@ -270,14 +367,24 @@ class UserSerializer(
         obj
     ):
 
-        return obj.followers.count()
+        return (
+            Follow.objects.filter(
+                following=obj,
+                status=Follow.Status.ACCEPTED
+            ).count()
+        )
 
     def get_following_count(
         self,
         obj
     ):
 
-        return obj.following.count()
+        return (
+            Follow.objects.filter(
+                follower=obj,
+                status=Follow.Status.ACCEPTED
+            ).count()
+        )
 
     def get_post_count(
         self,
@@ -285,6 +392,40 @@ class UserSerializer(
     ):
 
         return obj.posts.count()
+
+    def get_follow_status(
+        self,
+        obj
+    ):
+
+        request = self.context.get(
+            "request"
+        )
+
+        if not request:
+
+            return "NONE"
+
+        if request.user.is_anonymous:
+
+            return "NONE"
+
+        if request.user == obj:
+
+            return "SELF"
+
+        follow = (
+            Follow.objects.filter(
+                follower=request.user,
+                following=obj
+            ).first()
+        )
+
+        if not follow:
+
+            return "NONE"
+
+        return follow.status
 
 
 # UPDATE PROFILE
@@ -298,9 +439,13 @@ class UpdateProfileSerializer(
 
         fields = [
             "username",
+
             "first_name",
+
             "last_name",
+
             "bio",
+
             "avatar_url",
         ]
 

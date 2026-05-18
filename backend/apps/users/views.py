@@ -1,4 +1,6 @@
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import (
+    get_object_or_404
+)
 
 from django.contrib.auth import (
     update_session_auth_hash,
@@ -9,7 +11,9 @@ from django.contrib.auth.models import (
     update_last_login
 )
 
-from rest_framework.views import APIView
+from rest_framework.views import (
+    APIView
+)
 
 from rest_framework import (
     generics,
@@ -24,19 +28,37 @@ from rest_framework.permissions import (
     IsAuthenticated
 )
 
-from apps.posts.models import Post
+from rest_framework_simplejwt.tokens import (
+    RefreshToken
+)
+
+from apps.posts.models import (
+    Post
+)
 
 from apps.posts.serializers import (
     PostSerializer
 )
 
+from .models import (
+    Follow
+)
+
 from .serializers import (
+
     RegisterSerializer,
+
     LoginSerializer,
+
     UserSerializer,
+
     ChangePasswordSerializer,
+
     UpdateEmailSerializer,
-    UpdateProfileSerializer
+
+    UpdateProfileSerializer,
+
+    FollowSerializer
 )
 
 User = get_user_model()
@@ -55,30 +77,65 @@ class RegisterView(
 
 
 # LOGIN
-class LoginView(generics.GenericAPIView):
-    serializer_class = LoginSerializer
+class LoginView(
+    generics.GenericAPIView
+):
+
+    serializer_class = (
+        LoginSerializer
+    )
 
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+        serializer = (
+            self.get_serializer(
+                data=request.data
+            )
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
 
         user = serializer.user
-        update_last_login(None, user)
 
-        refresh = RefreshToken.for_user(user)
+        update_last_login(
+            None,
+            user
+        )
+
+        refresh = (
+            RefreshToken.for_user(
+                user
+            )
+        )
 
         res = Response({
-            "access": str(refresh.access_token),
-            "user": UserSerializer(user).data,
+
+            "access": str(
+                refresh.access_token
+            ),
+
+            "user": UserSerializer(
+                user,
+                context={
+                    "request": request
+                }
+            ).data,
         })
 
-        # 🔥 IMPORTANT: HttpOnly cookie (refresh token)
         res.set_cookie(
+
             key="refresh_token",
+
             value=str(refresh),
+
             httponly=True,
-            secure=False,   # set True in production HTTPS
+
+            secure=False,
+
             samesite="Lax",
+
             max_age=7 * 24 * 60 * 60,
         )
 
@@ -101,6 +158,12 @@ class CurrentUserView(
     def get_object(self):
 
         return self.request.user
+
+    def get_serializer_context(self):
+
+        return {
+            "request": self.request
+        }
 
 
 # UPDATE PROFILE
@@ -139,7 +202,7 @@ class UpdateEmailView(
                     "request": request
                 }
             )
-)
+        )
 
         serializer.is_valid(
             raise_exception=True
@@ -155,7 +218,10 @@ class UpdateEmailView(
 
         return Response(
             UserSerializer(
-                request.user
+                request.user,
+                context={
+                    "request": request
+                }
             ).data
         )
 
@@ -242,7 +308,10 @@ class UpdatePrivacyView(
 
         return Response(
             UserSerializer(
-                request.user
+                request.user,
+                context={
+                    "request": request
+                }
             ).data
         )
 
@@ -264,12 +333,18 @@ class DeactivateAccountView(
 
         user.save()
 
-        return Response(
+        response = Response(
             {
                 "detail":
                 "Account deactivated"
             }
         )
+
+        response.delete_cookie(
+            "refresh_token"
+        )
+
+        return response
 
 
 # LOGOUT ALL DEVICES
@@ -328,7 +403,8 @@ class LogoutAllDevicesView(
                 },
                 status=400
             )
-            
+
+
 # ALL USERS
 class AllUsersView(
     generics.ListAPIView
@@ -347,6 +423,12 @@ class AllUsersView(
         .order_by("-created_at")
     )
 
+    def get_serializer_context(self):
+
+        return {
+            "request": self.request
+        }
+
 
 # USER PROFILE BY ID
 class UserProfileView(
@@ -361,9 +443,17 @@ class UserProfileView(
         IsAuthenticated
     ]
 
-    queryset = User.objects.all()
+    queryset = (
+        User.objects.all()
+    )
 
     lookup_field = "id"
+
+    def get_serializer_context(self):
+
+        return {
+            "request": self.request
+        }
 
 
 # MY POSTS
@@ -395,14 +485,20 @@ class MyPostsView(
             .order_by("-created_at")
         )
 
-class CookieTokenRefreshView(APIView):
+
+# REFRESH ACCESS TOKEN
+class CookieTokenRefreshView(
+    APIView
+):
 
     def post(self, request):
 
         try:
 
-            refresh_token = request.COOKIES.get(
-                "refresh_token"
+            refresh_token = (
+                request.COOKIES.get(
+                    "refresh_token"
+                )
             )
 
             if not refresh_token:
@@ -415,38 +511,46 @@ class CookieTokenRefreshView(APIView):
                     status=status.HTTP_401_UNAUTHORIZED
                 )
 
-            old_refresh = RefreshToken(
-                refresh_token
+            old_refresh = (
+                RefreshToken(
+                    refresh_token
+                )
             )
 
-            # get user id
-            user_id = old_refresh.payload.get(
-                "user_id"
+            user_id = (
+                old_refresh.payload.get(
+                    "user_id"
+                )
             )
 
-            # fetch actual user object
             user = User.objects.get(
-                id=user_id
+                id=user_id,
+                is_active=True
             )
 
-            # blacklist old refresh token
             try:
+
                 old_refresh.blacklist()
-            except:
+
+            except Exception:
+
                 pass
 
-            # create new refresh token
             new_refresh = (
-                RefreshToken.for_user(user)
+                RefreshToken.for_user(
+                    user
+                )
             )
 
             response = Response({
+
                 "access": str(
                     new_refresh.access_token
                 )
             })
 
             response.set_cookie(
+
                 key="refresh_token",
 
                 value=str(new_refresh),
@@ -472,3 +576,269 @@ class CookieTokenRefreshView(APIView):
                 },
                 status=status.HTTP_401_UNAUTHORIZED
             )
+
+
+# FOLLOW USER
+class FollowUserView(
+    APIView
+):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def post(self, request, user_id):
+
+        target_user = (
+            get_object_or_404(
+                User,
+                id=user_id
+            )
+        )
+
+        if request.user == target_user:
+
+            return Response(
+                {
+                    "detail":
+                    "You cannot follow yourself"
+                },
+                status=400
+            )
+
+        existing_follow = (
+            Follow.objects.filter(
+                follower=request.user,
+                following=target_user
+            ).first()
+        )
+
+        if existing_follow:
+
+            return Response(
+                {
+                    "detail":
+                    "Already requested/following"
+                },
+                status=400
+            )
+
+        follow_status = (
+            Follow.Status.PENDING
+            if target_user.is_private
+            else Follow.Status.ACCEPTED
+        )
+
+        follow = (
+            Follow.objects.create(
+                follower=request.user,
+                following=target_user,
+                status=follow_status
+            )
+        )
+
+        return Response(
+            FollowSerializer(
+                follow
+            ).data,
+            status=201
+        )
+
+
+# ACCEPT FOLLOW REQUEST
+class AcceptFollowRequestView(
+    APIView
+):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def patch(self, request, follow_id):
+
+        follow = (
+            get_object_or_404(
+                Follow,
+                id=follow_id,
+                following=request.user,
+                status=Follow.Status.PENDING
+            )
+        )
+
+        follow.status = (
+            Follow.Status.ACCEPTED
+        )
+
+        follow.save()
+
+        return Response(
+            {
+                "detail":
+                "Follow request accepted"
+            }
+        )
+
+
+# REJECT FOLLOW REQUEST
+class RejectFollowRequestView(
+    APIView
+):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def delete(self, request, follow_id):
+
+        follow = (
+            get_object_or_404(
+                Follow,
+                id=follow_id,
+                following=request.user,
+                status=Follow.Status.PENDING
+            )
+        )
+
+        follow.delete()
+
+        return Response(
+            {
+                "detail":
+                "Follow request rejected"
+            }
+        )
+
+
+# UNFOLLOW USER
+class UnfollowUserView(
+    APIView
+):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def delete(self, request, user_id):
+
+        target_user = (
+            get_object_or_404(
+                User,
+                id=user_id
+            )
+        )
+
+        follow = (
+            get_object_or_404(
+                Follow,
+                follower=request.user,
+                following=target_user
+            )
+        )
+
+        follow.delete()
+
+        return Response(
+            {
+                "detail":
+                "Unfollowed successfully"
+            }
+        )
+
+
+# MY FOLLOWERS
+class FollowersListView(
+    APIView
+):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+
+        followers = (
+            Follow.objects.filter(
+                following=request.user,
+                status=Follow.Status.ACCEPTED
+            )
+            .select_related(
+                "follower"
+            )
+        )
+
+        serializer = (
+            FollowSerializer(
+                followers,
+                many=True
+            )
+        )
+
+        return Response(
+            serializer.data
+        )
+
+
+# MY FOLLOWING
+class FollowingListView(
+    APIView
+):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+
+        following = (
+            Follow.objects.filter(
+                follower=request.user,
+                status=Follow.Status.ACCEPTED
+            )
+            .select_related(
+                "following"
+            )
+        )
+
+        serializer = (
+            FollowSerializer(
+                following,
+                many=True
+            )
+        )
+
+        return Response(
+            serializer.data
+        )
+
+
+# PENDING REQUESTS
+class PendingRequestsView(
+    APIView
+):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+
+        requests = (
+            Follow.objects.filter(
+                following=request.user,
+                status=Follow.Status.PENDING
+            )
+            .select_related(
+                "follower"
+            )
+        )
+
+        serializer = (
+            FollowSerializer(
+                requests,
+                many=True
+            )
+        )
+
+        return Response(
+            serializer.data
+        )

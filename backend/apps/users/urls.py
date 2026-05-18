@@ -1,26 +1,46 @@
 from django.urls import path
 
-from rest_framework_simplejwt.views import (
-    TokenRefreshView,
-)
-
 from apps.users.views import (
+
     RegisterView,
+
     LoginView,
+
     CookieTokenRefreshView,
+
     CurrentUserView,
 
     UpdateProfileView,
+
     UpdateEmailView,
+
     ChangePasswordView,
+
     UpdatePrivacyView,
+
     DeactivateAccountView,
+
     LogoutAllDevicesView,
 
     AllUsersView,
+
     UserProfileView,
 
     MyPostsView,
+
+    FollowUserView,
+
+    AcceptFollowRequestView,
+
+    RejectFollowRequestView,
+
+    UnfollowUserView,
+
+    FollowersListView,
+
+    FollowingListView,
+
+    PendingRequestsView,
 )
 
 urlpatterns = [
@@ -35,10 +55,11 @@ urlpatterns = [
         "login/",
         LoginView.as_view()
     ),
+
     path(
-    "token/refresh/",
-    CookieTokenRefreshView.as_view(),
-),
+        "token/refresh/",
+        CookieTokenRefreshView.as_view(),
+    ),
 
 
     # CURRENT USER
@@ -94,5 +115,50 @@ urlpatterns = [
     path(
         "get-user/<int:id>/",
         UserProfileView.as_view()
+    ),
+
+
+    # FOLLOW SYSTEM
+
+    # FOLLOW USER
+    path(
+        "follow/<int:user_id>/",
+        FollowUserView.as_view()
+    ),
+
+    # UNFOLLOW USER
+    path(
+        "unfollow/<int:user_id>/",
+        UnfollowUserView.as_view()
+    ),
+
+    # ACCEPT REQUEST
+    path(
+        "follow-request/<int:follow_id>/accept/",
+        AcceptFollowRequestView.as_view()
+    ),
+
+    # REJECT REQUEST
+    path(
+        "follow-request/<int:follow_id>/reject/",
+        RejectFollowRequestView.as_view()
+    ),
+
+    # FOLLOWERS
+    path(
+        "followers/",
+        FollowersListView.as_view()
+    ),
+
+    # FOLLOWING
+    path(
+        "following/",
+        FollowingListView.as_view()
+    ),
+
+    # PENDING REQUESTS
+    path(
+        "pending-requests/",
+        PendingRequestsView.as_view()
     ),
 ]
