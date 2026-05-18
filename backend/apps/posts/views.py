@@ -1,3 +1,4 @@
+from apps.core.pagination import CommentCursorPagination
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -20,7 +21,7 @@ class PostCreateView(generics.CreateAPIView):
 class FeedView(generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Post.objects.all().select_related("author").prefetch_related("likes", "comments")
+    queryset = Post.objects.all().select_related("author").prefetch_related("likes")
 
 
 # 3. POSTS BY A SPECIFIC USER
@@ -30,7 +31,7 @@ class UserPostsView(generics.ListAPIView):
 
     def get_queryset(self):
         user_id = self.kwargs["user_id"]
-        return Post.objects.filter(author_id=user_id).select_related("author").prefetch_related("likes", "comments")
+        return Post.objects.filter(author_id=user_id).select_related("author").prefetch_related("likes")
 
 
 # 4. GET, UPDATE, OR DELETE A SINGLE POST
@@ -75,15 +76,24 @@ class PostLikeToggleView(APIView):
 
 
 # 6. COMMENTS (LIST ALL FOR A POST OR CREATE NEW)
-class CommentListCreateView(generics.ListCreateAPIView):
+class CommentListCreateView(
+    generics.ListCreateAPIView
+):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CommentCursorPagination
 
     def get_queryset(self):
-        return Comment.objects.filter(post_id=self.kwargs["post_id"]).select_related("author")
+        return (
+            Comment.objects
+            .filter(
+                post_id=self.kwargs["post_id"]
+            )
+            .select_related("author")
+        )
 
-    def perform_create(self, serializer):
-        post = get_object_or_404(Post, id=self.kwargs["post_id"])
+    def perform_create(self,serializer):
+        post = get_object_or_404(Post,id=self.kwargs["post_id"])
         serializer.save(author=self.request.user, post=post)
 
 

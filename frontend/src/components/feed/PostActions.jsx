@@ -22,6 +22,7 @@ import { postService }
 export default function PostActions({
   post,
   onShareClick, // Prop forward handler
+  onCommentClick,
 }) {
 
   const dispatch =
@@ -125,6 +126,7 @@ export default function PostActions({
 
       {/* COMMENTS */}
       <button
+        onClick={onCommentClick}
         className="
           flex items-center
           gap-2

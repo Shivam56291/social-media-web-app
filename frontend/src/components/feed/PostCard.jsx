@@ -22,6 +22,8 @@ import { postService } from "../../services/postService";
 import PostActions from "./PostActions";
 
 import EditPostModal from "../post/EditPostModal";
+import CommentsPreview from "../comments/CommentsPreview";
+import CommentsModal from "../comments/CommentsModal";
 
 export default function PostCard({ post, onShareClick }) {
   const dispatch = useDispatch();
@@ -33,6 +35,9 @@ export default function PostCard({ post, onShareClick }) {
   const [openEdit, setOpenEdit] = useState(false);
 
   const [activeImage, setActiveImage] = useState(0);
+
+  const [showComments, setShowComments] = useState(false);
+  const [commentsModalOpen, setCommentsModalOpen] = useState(false);
 
   // States for the Lightbox / Nested Image viewer modal
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -46,7 +51,7 @@ export default function PostCard({ post, onShareClick }) {
 
   // Extract parent post details using your exact backend key 'parent_post_detail'
   const hasParent = !!post.parent_post_detail;
-  const parentPost = post.parent_post_detail; 
+  const parentPost = post.parent_post_detail;
   const parentAuthor = parentPost?.author_detail;
   const parentImages = parentPost?.image_urls || [];
 
@@ -323,7 +328,7 @@ export default function PostCard({ post, onShareClick }) {
         {hasParent && parentPost && (
           <div className="px-5 pb-4">
             <div className="rounded-[24px] border border-white/10 bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-all duration-200">
-              
+
               {/* ORIGINAL AUTHOR HEADER */}
               <div className="flex items-center gap-2 mb-3">
                 <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 text-[11px] font-bold">
@@ -351,7 +356,7 @@ export default function PostCard({ post, onShareClick }) {
                 <div className="mt-3 overflow-hidden rounded-2xl border border-white/5 bg-black">
                   {parentImages.length === 1 ? (
                     /* Layout for Single Shared Image */
-                    <div 
+                    <div
                       onClick={() => openLightbox(0)}
                       className="w-full aspect-video max-h-80 overflow-hidden cursor-pointer group relative"
                     >
@@ -365,19 +370,18 @@ export default function PostCard({ post, onShareClick }) {
                     /* Grid Layout for Multiple Shared Images (2, 3, or 4+ images) */
                     <div className="grid grid-cols-2 gap-1.5 aspect-video w-full max-h-80">
                       {parentImages.slice(0, 4).map((img, idx) => (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           onClick={() => openLightbox(idx)}
-                          className={`relative overflow-hidden w-full h-full cursor-pointer group ${
-                            parentImages.length === 3 && idx === 0 ? "row-span-2" : ""
-                          }`}
+                          className={`relative overflow-hidden w-full h-full cursor-pointer group ${parentImages.length === 3 && idx === 0 ? "row-span-2" : ""
+                            }`}
                         >
                           <img
                             src={img}
                             alt=""
                             className="w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-[1.03]"
                           />
-                          
+
                           {/* More Images Indicator Badge Overlay */}
                           {idx === 3 && parentImages.length > 4 && (
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm z-10">
@@ -525,11 +529,10 @@ export default function PostCard({ post, onShareClick }) {
                         rounded-2xl
                         border
                         transition-all
-                        ${
-                          activeImage === index
-                            ? "border-cyan-400"
-                            : "border-white/10"
-                        }
+                        ${activeImage === index
+                        ? "border-cyan-400"
+                        : "border-white/10"
+                      }
                       `}
                   >
                     <img
@@ -550,14 +553,62 @@ export default function PostCard({ post, onShareClick }) {
 
         {/* ACTIONS BUTTONS ROW */}
         <div className="px-5 pb-5">
-          <PostActions post={post} onShareClick={onShareClick} />
+          <PostActions
+            post={post}
+            onShareClick={onShareClick}
+            onCommentClick={() =>
+              setShowComments(
+                (prev) => !prev
+              )
+            }
+          />
         </div>
       </motion.article>
+      <AnimatePresence>
+
+        {showComments && (
+
+          <motion.div
+            initial={{
+              opacity: 0,
+              height: 0,
+            }}
+            animate={{
+              opacity: 1,
+              height: "auto",
+            }}
+            exit={{
+              opacity: 0,
+              height: 0,
+            }}
+            className="overflow-hidden"
+          >
+
+            <CommentsPreview
+              post={post}
+              onOpenModal={() =>
+                setCommentsModalOpen(true)
+              }
+            />
+
+          </motion.div>
+
+        )}
+
+      </AnimatePresence>
 
       {/* EDIT POST DIALOG MODAL */}
       <EditPostModal
         open={openEdit}
         onClose={() => setOpenEdit(false)}
+        post={post}
+      />
+
+      <CommentsModal
+        open={commentsModalOpen}
+        onClose={() =>
+          setCommentsModalOpen(false)
+        }
         post={post}
       />
 
@@ -572,7 +623,7 @@ export default function PostCard({ post, onShareClick }) {
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-lg p-4"
           >
             {/* Close Button */}
-            <button 
+            <button
               onClick={() => setLightboxOpen(false)}
               className="absolute top-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white transition-all hover:bg-white/10"
             >
@@ -581,9 +632,9 @@ export default function PostCard({ post, onShareClick }) {
 
             {/* Main Lightbox Frame Container */}
             <div className="relative w-full max-w-5xl aspect-video max-h-[85vh] overflow-hidden rounded-3xl border border-white/5 bg-neutral-950 flex items-center justify-center">
-              <img 
-                src={parentImages[lightboxIndex]} 
-                alt="" 
+              <img
+                src={parentImages[lightboxIndex]}
+                alt=""
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()} // Prevent close on clicking image itself
               />

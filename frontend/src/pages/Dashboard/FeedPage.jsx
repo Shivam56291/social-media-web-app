@@ -47,11 +47,7 @@ export default function FeedPage() {
   const dispatch =
     useDispatch();
 
-  const { user } =
-    useSelector(
-      (state) =>
-        state.auth
-    );
+  const { user } =useSelector((state) =>state.auth);
 
   const {
     posts,
@@ -86,9 +82,7 @@ export default function FeedPage() {
           const data =
             await postService.getFeed();
 
-          dispatch(
-            setPosts(data)
-          );
+          dispatch(setPosts(data.results || data));
 
         } catch (error) {
 
