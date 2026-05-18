@@ -1,26 +1,69 @@
+// src/utils/authStorage.js
+
 export const authStorage = {
+
+  /* ACCESS TOKEN */
   setAccess(token) {
-    sessionStorage.setItem("access", token);
+
+    localStorage.setItem(
+      "access",
+      token
+    );
   },
 
   getAccess() {
-    return sessionStorage.getItem("access");
+
+    return localStorage.getItem(
+      "access"
+    );
   },
 
+
+  /* USER */
   setUser(user) {
-    sessionStorage.setItem("user", JSON.stringify(user));
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(user)
+    );
   },
 
   getUser() {
+
     try {
-      return JSON.parse(sessionStorage.getItem("user"));
+
+      const user =
+        localStorage.getItem(
+          "user"
+        );
+
+      return user
+        ? JSON.parse(user)
+        : null;
+
     } catch {
+
       return null;
     }
   },
 
+
+  /* CLEAR */
   clear() {
-    sessionStorage.removeItem("access");
-    sessionStorage.removeItem("user");
+
+    localStorage.removeItem(
+      "access"
+    );
+
+    localStorage.removeItem(
+      "user"
+    );
+  },
+
+
+  /* CHECK */
+  isAuthenticated() {
+
+    return !!this.getAccess();
   }
 };

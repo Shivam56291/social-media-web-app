@@ -6,6 +6,8 @@ from apps.users.views import (
 
     LoginView,
 
+    LogoutView,
+
     CookieTokenRefreshView,
 
     CurrentUserView,
@@ -54,6 +56,11 @@ urlpatterns = [
     path(
         "login/",
         LoginView.as_view()
+    ),
+
+    path(
+        "logout/",
+        LogoutView.as_view()
     ),
 
     path(

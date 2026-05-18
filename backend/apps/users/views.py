@@ -141,7 +141,29 @@ class LoginView(
 
         return res
 
+# LOGOUT
+class LogoutView(
+    APIView
+):
 
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def post(self, request):
+
+        response = Response(
+            {
+                "detail":
+                "Logged out successfully"
+            }
+        )
+
+        response.delete_cookie(
+            "refresh_token"
+        )
+
+        return response
 # CURRENT USER
 class CurrentUserView(
     generics.RetrieveAPIView
@@ -487,18 +509,14 @@ class MyPostsView(
 
 
 # REFRESH ACCESS TOKEN
-class CookieTokenRefreshView(
-    APIView
-):
+class CookieTokenRefreshView(APIView):
 
     def post(self, request):
 
         try:
 
-            refresh_token = (
-                request.COOKIES.get(
-                    "refresh_token"
-                )
+            refresh_token = request.COOKIES.get(
+                "refresh_token"
             )
 
             if not refresh_token:
@@ -511,16 +529,12 @@ class CookieTokenRefreshView(
                     status=status.HTTP_401_UNAUTHORIZED
                 )
 
-            old_refresh = (
-                RefreshToken(
-                    refresh_token
-                )
+            refresh = RefreshToken(
+                refresh_token
             )
 
-            user_id = (
-                old_refresh.payload.get(
-                    "user_id"
-                )
+            user_id = refresh.payload.get(
+                "user_id"
             )
 
             user = User.objects.get(
@@ -528,18 +542,9 @@ class CookieTokenRefreshView(
                 is_active=True
             )
 
-            try:
-
-                old_refresh.blacklist()
-
-            except Exception:
-
-                pass
-
+            # create new refresh token
             new_refresh = (
-                RefreshToken.for_user(
-                    user
-                )
+                RefreshToken.for_user(user)
             )
 
             response = Response({
@@ -557,7 +562,7 @@ class CookieTokenRefreshView(
 
                 httponly=True,
 
-                secure=False,
+                secure=False,  # True in production
 
                 samesite="Lax",
 
@@ -576,7 +581,6 @@ class CookieTokenRefreshView(
                 },
                 status=status.HTTP_401_UNAUTHORIZED
             )
-
 
 # FOLLOW USER
 class FollowUserView(
